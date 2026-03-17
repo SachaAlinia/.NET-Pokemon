@@ -1,0 +1,61 @@
+63f7b34db8d8cdea90c76aacccf841ec
+::res://::1773768396
+icon.svg::CompressedTexture2D::9183694230327724791::1770070551::1772712154::1::::<><><>0<>0<>c392b0195fc3cf66bdb2650b1bd3fd06<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
+::res://assets/::1772628876
+::res://assets/characters/::1773234052
+DS _ DSi - Pokemon Black 2 _ White 2 - Overworld - Nate.png::CompressedTexture2D::9127371853779499205::1772628876::1772708504::1::::<><><>0<>0<>f7fafa81d22b1138218fc37cbab1d46a<>res://.godot/imported/DS _ DSi - Pokemon Black 2 _ White 2 - Overworld - Nate.png-5d3124c0ac44cb0dd4d531610f5d3f3e.ctex::
+image.png::CompressedTexture2D::5474287481527450574::1772628876::1772708504::1::::<><><>0<>0<>6c807af102b53d81f532a727d3a0c8f4<>res://.godot/imported/image.png-2b6cd6a15bad6d3bd8c281abbdf3cc92.ctex::
+qq.png::CompressedTexture2D::3703873281696021241::1773234047::1773234052::1::::<><><>0<>0<>f61894ac190edee1f476d07f0e3574eb<>res://.godot/imported/qq.png-13cdc325ab36682c9d01f8d44885280f.ctex::
+ss.png::CompressedTexture2D::4864967767603608780::1772628876::1772708504::1::::<><><>0<>0<>ca2c7ad6057cf2526799653e5b2d6f80<>res://.godot/imported/ss.png-ac36ac85ab513f7fdcc8813363d3f8e0.ctex::
+::res://assets/levels/::1773232636
+DS _ DSi - Pokemon HeartGold _ SoulSilver - Overworld - Pokemon (1st Generation, Overworld).png::CompressedTexture2D::374947332424144091::1772628876::1772708504::1::::<><><>0<>0<>63763e7a52d34054271bef36fd7ebc70<>res://.godot/imported/DS _ DSi - Pokemon HeartGold _ SoulSilver - Overworld - Pokemon (1st Generation, Overworld).png-4c6df19370c5b3653db208f043f7510b.ctex::
+Game Boy Advance - Pokemon Emerald - Miscellaneous - Pokemon Menu.png::CompressedTexture2D::4597358529607694185::1772628876::1772708504::1::::<><><>0<>0<>be2414b566bb49a226694217a345c684<>res://.godot/imported/Game Boy Advance - Pokemon Emerald - Miscellaneous - Pokemon Menu.png-49b350a6a87847b94a9833e512da6981.ctex::
+Game Boy Advance - Pokemon FireRed _ LeafGreen - Maps (Caves, Forests, Oceans, Etc.) - Pokemon Mansion.png::CompressedTexture2D::992651720418850000::1772628876::1772708504::1::::<><><>0<>0<>41b9da362f1bec7673abbbed659bb2b3<>res://.godot/imported/Game Boy Advance - Pokemon FireRed _ LeafGreen - Maps (Caves, Forests, Oceans, Etc.) - Pokemon Mansion.png-cc7ab7d05fcd0a01d94e8962baab109a.ctex::
+Game Boy Advance - Pokemon FireRed _ LeafGreen - Maps (Towns, Buildings, Etc.) - Pallet Town.png::CompressedTexture2D::3087821437265466355::1772628876::1772708504::1::::<><><>0<>0<>1d93e7d06817a1f50ede9fd7499806e6<>res://.godot/imported/Game Boy Advance - Pokemon FireRed _ LeafGreen - Maps (Towns, Buildings, Etc.) - Pallet Town.png-8d9f95c374739ec125e0cdd18ddce29e.ctex::
+Game Boy Advance - Pokemon FireRed _ LeafGreen - Tilesets - Buildings.png::CompressedTexture2D::938699808426999526::1772628876::1772708504::1::::<><><>0<>0<>a7f9b8b76ddf0dd84b226e562328bdf7<>res://.godot/imported/Game Boy Advance - Pokemon FireRed _ LeafGreen - Tilesets - Buildings.png-1f2685209e1ce1f29f4c4757b03f5239.ctex::
+::res://ressources/::1772628876
+::res://ressources/tilesets/::1773765928
+level.tres::TileSet::2331594607719350813::1773765928::0::1::::<><><>0<>0<><>::uid://bj80756y6q6nn::::res://assets/levels/Game Boy Advance - Pokemon FireRed _ LeafGreen - Maps (Towns, Buildings, Etc.) - Pallet Town.png<>uid://nmyipq4qcos1::::res://assets/levels/Game Boy Advance - Pokemon FireRed _ LeafGreen - Tilesets - Buildings.png
+::res://scenes/::1773332158
+::res://scenes/core/::1773767924
+game_manager.tscn::PackedScene::5043910102666176415::1773339012::0::1::::<><><>0<>0<><>::uid://gcqv3u2o4jtg::::res://scripts/core/GameManager.cs
+scene_manager.tscn::PackedScene::5385194900681282705::1773767924::0::1::::<><><>0<>0<><>::uid://dqdrkjdkp73u8::::res://scripts/core/SceneManager.cs
+::res://scenes/entities/::1773767376
+player.gdshader::Shader::4262597521269605364::1773317223::0::1::::<><><>0<>0<><>::
+player.tscn::PackedScene::437942080010097748::1773767376::0::1::::<><><>0<>0<><>::uid://dvme1itypucmm::::res://scripts/gameplay/characters/Player.cs<>uid://b1y3mgkvrw6xk::::res://scenes/entities/player.gdshader<>uid://vimtc0gtjysu::::res://scripts/gameplay/characters/PlayerInput.cs<>uid://cbkvkqppsju41::::res://assets/characters/ss.png<>uid://caof0o5f81ssy::::res://scripts/gameplay/characters/CharacterMovement.cs<>uid://brppkfoj1t7cx::::res://scripts/gameplay/characters/CharacterAnimation.cs<>uid://bs1gitdaud44t::::res://assets/characters/qq.png<>uid://cb1l4y2ygvags::::res://scripts/utilities/StateMachine.cs<>uid://bc08gxyick2e5::::res://scripts/gameplay/characters/states/PlayerRoamState.cs<>uid://1y1ji6n1tlcc::::res://scripts/gameplay/characters/CharacterCollisionRayCast.cs
+::res://scenes/levels/::1773768257
+CollisionShape2d8.cs::CSharpScript::8903802944183870223::1773766281::0::1::::<>CollisionShape2D<><>0<>0<><>::
+house1.tscn::PackedScene::6993327377713444162::1773329964::0::1::::<><><>0<>0<><>::uid://collbco2jpp78::::res://scripts/gameplay/levels/Level.cs<>uid://8hpa1b4st1mf::::res://ressources/tilesets/level.tres<>uid://gie3vo4kkusq::::res://scenes/entites/player.tscn<>uid://cp42o1c3nqwoa::::res://scenes/levels/scene_trigger.tscn<>uid://1o1yw0j8plm7::::res://scenes/levels/spawn_point.tscn
+house1_2nd.tscn::PackedScene::273026830021138226::1773326660::0::1::::<><><>0<>0<><>::uid://collbco2jpp78::::res://scripts/gameplay/levels/Level.cs<>uid://8hpa1b4st1mf::::res://ressources/tilesets/level.tres<>uid://1o1yw0j8plm7::::res://scenes/levels/spawn_point.tscn<>uid://gie3vo4kkusq::::res://scenes/entites/player.tscn
+house2.tscn::PackedScene::1297298351952563892::1773330033::0::1::::<><><>0<>0<><>::uid://collbco2jpp78::::res://scripts/gameplay/levels/Level.cs<>uid://8hpa1b4st1mf::::res://ressources/tilesets/level.tres<>uid://1o1yw0j8plm7::::res://scenes/levels/spawn_point.tscn<>uid://cp42o1c3nqwoa::::res://scenes/levels/scene_trigger.tscn<>uid://gie3vo4kkusq::::res://scenes/entites/player.tscn
+lab.tscn::PackedScene::8867926005028656058::1773766975::0::1::::<><><>0<>0<><>::uid://collbco2jpp78::::res://scripts/gameplay/levels/Level.cs<>uid://8hpa1b4st1mf::::res://ressources/tilesets/level.tres<>uid://cp42o1c3nqwoa::::res://scenes/levels/scene_trigger.tscn<>uid://1o1yw0j8plm7::::res://scenes/levels/spawn_point.tscn<>uid://gie3vo4kkusq::::res://scenes/entities/player.tscn
+level.tres::TileSet::7411814728306901069::1772628876::0::1::::<><><>0<>0<><>::
+map1.tscn::PackedScene::6497762240578435840::1773768257::0::1::::<><><>0<>0<><>::uid://8hpa1b4st1mf::::res://ressources/tilesets/level.tres<>uid://collbco2jpp78::::res://scripts/gameplay/levels/Level.cs<>uid://1o1yw0j8plm7::::res://scenes/levels/spawn_point.tscn<>uid://cp42o1c3nqwoa::::res://scenes/levels/scene_trigger.tscn<>uid://gie3vo4kkusq::::res://scenes/entities/player.tscn
+scene_trigger.tscn::PackedScene::5887206706730716036::1773317617::0::1::::<><><>0<>0<><>::uid://bfcdglfp3mccb::::res://scripts/gameplay/levels/SceneTrigger.cs
+spawn_point.tscn::PackedScene::1855433918598758604::1773317223::0::1::::<><><>0<>0<><>::uid://bmktn08ij1j2w::::res://scripts/gameplay/levels/SpawnPoint.cs
+::res://scripts/::1772714178
+::res://scripts/core/::1773330693
+Enums.cs::CSharpScript::5190538641114444747::1773331117::0::1::::<><><>0<>0<><>::
+GameManager.cs::CSharpScript::426272293689088472::1773334530::0::1::::<>Node<><>0<>0<><>::
+Globals.cs::CSharpScript::8544564317744395829::1772711194::0::1::::<>Node<><>0<>0<><>::
+Logger.cs::CSharpScript::4133295593057445188::1772628876::0::1::::<><><>0<>0<><>::
+Modules.cs::CSharpScript::7897777330350696857::1772716105::0::1::::<><><>0<>0<><>::
+SceneManager.cs::CSharpScript::8289527207186334121::1773336390::0::1::::<>Node<><>0<>0<><>::
+::res://scripts/gameplay/::1773247021
+::res://scripts/gameplay/characters/::1773324153
+CharacterAnimation.cs::CSharpScript::3611525589369554099::1773353504::0::1::::<>AnimatedSprite2D<><>0<>0<><>::
+CharacterCollisionRayCast.cs::CSharpScript::1876050183345251594::1773236509::0::1::::<>RayCast2D<><>0<>0<><>::
+CharacterInput.cs::CSharpScript::5796325706033194006::1772710951::0::1::::<>Node<><>1<>0<><>::
+CharacterMovement.cs::CSharpScript::4802091667697847748::1773353628::0::1::::<>Node<><>0<>0<><>::
+Player.cs::CSharpScript::8658290049788662780::1772720505::0::1::::<>CharacterBody2D<><>0<>0<><>::
+PlayerInput.cs::CSharpScript::1491243416393744592::1772716848::0::1::::<>Node<><>0<>0<><>::
+spawn.png::CompressedTexture2D::3625172764355115612::1773232058::1773232048::1::::<><><>0<>0<>32efdc5aa0c0fb0e2e25d301d472dff8<>res://.godot/imported/spawn.png-3df5cec03d030b24feb24e4469dace34.ctex::
+::res://scripts/gameplay/characters/states/::1772714959
+PlayerRoamState.cs::CSharpScript::2580423435824322690::1773246378::0::1::::<>Node<><>0<>0<><>::
+::res://scripts/gameplay/levels/::1773317538
+Level.cs::CSharpScript::5778863134241002629::1773247368::0::1::::<>Node2D<><>0<>0<><>::
+SceneTrigger.cs::CSharpScript::2741687109333407757::1773330931::0::1::::<>Area2D<><>0<>0<><>::
+SpawnPoint.cs::CSharpScript::3250508787512256880::1773317173::0::1::::<>Node2D<><>0<>0<><>::
+::res://scripts/utilities/::1772714866
+State.cs::CSharpScript::8575159426403346803::1772716613::0::1::::<>Node<><>1<>0<><>::
+StateMachine.cs::CSharpScript::4897425010942878246::1772716621::0::1::::<>Node<><>0<>0<><>::

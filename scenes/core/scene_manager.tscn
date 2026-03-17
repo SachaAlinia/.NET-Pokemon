@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://ciyvmxplhekbx"]
+
+[ext_resource type="Script" uid="uid://dqdrkjdkp73u8" path="res://scripts/core/SceneManager.cs" id="1_mv24n"]
+
+[node name="SceneManager" type="Node" unique_id=1218823804 node_paths=PackedStringArray("AllLevels")]
+script = ExtResource("1_mv24n")
+AllLevels = []
+
+[node name="Control" type="Control" parent="." unique_id=1403664530]
+visible = false
+z_index = 100
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="Control" unique_id=1009456881]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+metadata/_edit_use_anchors_ = true

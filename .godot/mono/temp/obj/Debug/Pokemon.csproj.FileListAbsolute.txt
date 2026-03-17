@@ -1,0 +1,17 @@
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\bin\Debug\Pokemon.deps.json
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\bin\Debug\Pokemon.runtimeconfig.json
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\bin\Debug\Pokemon.dll
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\bin\Debug\Pokemon.pdb
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\bin\Debug\GodotSharp.dll
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\bin\Debug\GodotSharpEditor.dll
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\obj\Debug\Pokemon.csproj.AssemblyReference.cache
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\obj\Debug\Pokemon.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\obj\Debug\Pokemon.AssemblyInfoInputs.cache
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\obj\Debug\Pokemon.AssemblyInfo.cs
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\obj\Debug\Pokemon.csproj.CoreCompileInputs.cache
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\obj\Debug\Pokemon.csproj.Up2Date
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\obj\Debug\Pokemon.dll
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\obj\Debug\refint\Pokemon.dll
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\obj\Debug\Pokemon.pdb
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\obj\Debug\Pokemon.genruntimeconfig.cache
+C:\Users\alnsa\Downloads\.NET-Pokemon-main\.godot\mono\temp\obj\Debug\ref\Pokemon.dll

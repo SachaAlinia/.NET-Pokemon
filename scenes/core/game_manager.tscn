@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://cd4kpyu1sa8q2"]
+
+[ext_resource type="Script" uid="uid://gcqv3u2o4jtg" path="res://scripts/core/GameManager.cs" id="1_hwd4i"]
+
+[node name="GameManager" type="Node" unique_id=1893301181 node_paths=PackedStringArray("GameViewPort")]
+script = ExtResource("1_hwd4i")
+GameViewPort = NodePath("Control/SubViewportContainer/SubViewport")
+
+[node name="Control" type="Control" parent="." unique_id=413157259]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Control" unique_id=1482849265]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 181.0
+offset_bottom = 130.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="Control/SubViewportContainer" unique_id=1626470569]
+handle_input_locally = false
+size = Vector2i(1128, 736)
+size_2d_override = Vector2i(480, 270)
+size_2d_override_stretch = true
+render_target_update_mode = 4

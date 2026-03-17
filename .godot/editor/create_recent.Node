@@ -1,0 +1,10 @@
+Area2D
+Camera2D
+ColorRect
+Control
+Node
+CollisionShape2D
+AudioStreamPlayer2D
+Node2D
+StaticBody2D
+Sprite2D
