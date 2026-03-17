@@ -18,6 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 Globals="*uid://dt0byxghpnnf6"
+<<<<<<< HEAD
 SceneManager="*uid://ciyvmxplhekbx"
 
 [display]
@@ -27,6 +28,12 @@ window/size/viewport_height=606
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/stretch/scale_mode="integer"
+=======
+
+[display]
+
+window/stretch/mode="viewport"
+>>>>>>> 682157cd58aeb8651ff30a09b88dc3104c9a62dd
 
 [dotnet]
 
@@ -38,5 +45,8 @@ project/assembly_name="Pokemon"
 
 [rendering]
 
+<<<<<<< HEAD
 textures/canvas_textures/default_texture_filter=0
+=======
+>>>>>>> 682157cd58aeb8651ff30a09b88dc3104c9a62dd
 rendering_device/driver.windows="d3d12"
