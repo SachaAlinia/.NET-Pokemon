@@ -1,0 +1,8 @@
+{
+    "[csharp]": {
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "editor.codeLens": false
+    },
+    "godotTools.editorPath.godot4": "c:\\Users\\alnsa\\Downloads\\Godot_v4.6.1-stable_win64.exe\\Godot_v4.6.1-stable_win64.exe"
+}
