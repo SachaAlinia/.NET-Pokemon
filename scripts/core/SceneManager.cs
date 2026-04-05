@@ -47,23 +47,20 @@ public partial class SceneManager : Node
 		// On récupère le MusicPlayer via l'AutoLoad (Singleton)
 		var musicPlayer = Instance.GetNode<MusicPlayer>("/root/MusicPlayer");
 
-		// On change la musique selon la destination
+		// Dans SceneManager.cs, à l'intérieur de la méthode ChangeLevel :
 		switch (levelName)
 		{
 			case LevelName.small_town:
-				musicPlayer.PlayMusic("res://assets/audio/music/music1.mp3", -25.0f);
+				musicPlayer.PlayMusic("res://assets/audio/music/music1.mp3", -22.0f);
 				break;
 
 			case LevelName.small_town_cave:
-				musicPlayer.PlayMusic("res://assets/audio/music/music2.mp3", -20.0f);
+				musicPlayer.PlayMusic("res://assets/audio/music/music2.mp3", -17.0f);
 				break;
 
 			case LevelName.small_town_greens_house:
-				musicPlayer.PlayMusic("res://assets/audio/music/music3.mp3", -23.0f);
-				break;
-
 			case LevelName.small_town_purples_house:
-				musicPlayer.PlayMusic("res://assets/audio/music/music3.mp3", -23.0f);
+				musicPlayer.PlayMusic("res://assets/audio/music/music3.mp3", -20.0f);
 				break;
 
 			case LevelName.small_town_pokemon_center:
@@ -71,7 +68,7 @@ public partial class SceneManager : Node
 				break;
 
 			default:
-				// Optionnel : Ajouter une musique par défaut si nécessaire
+				// Musique par défaut si le niveau n'est pas listé
 				break;
 		}
 		// -----------------------------
