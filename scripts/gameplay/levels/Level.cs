@@ -42,7 +42,18 @@ public partial class Level : Node2D
 	{
 		Logger.Info($"Loading level {LevelName} ...");
 
-		GetNode<LevelDebugger>("DebugLayer").DebugOn = DebugLayerOn;
+		// On utilise GetNodeOrNull pour éviter que le jeu crash si le noeud est absent
+		var debugLayer = GetNodeOrNull<LevelDebugger>("DebugLayer");
+
+		if (debugLayer != null)
+		{
+			debugLayer.DebugOn = DebugLayerOn;
+		}
+		else
+		{
+			// On prévient juste dans la console, mais le jeu continue !
+			Logger.Info($"Note: No DebugLayer found in {LevelName}. Skipping debug setup.");
+		}
 	}
 
 	public override void _Process(double delta)
