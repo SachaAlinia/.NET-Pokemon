@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://cnnj6qrunfekb"]
 
 [ext_resource type="AudioStream" uid="uid://dy4y554mys8sb" path="res://assets/audio/music/music1.mp3" id="1_15vtd"]
-[ext_resource type="Script" uid="uid://j26evp3qny7m" path="res://scenes/core/MusicPlayer.cs" id="1_vwc8s"]
+[ext_resource type="Script" uid="uid://b4ncg83owy62u" path="res://scripts/core/MusicPlayer.cs" id="2_15vtd"]
 
 [node name="MusicPlayer" type="AudioStreamPlayer" unique_id=39571538]
 stream = ExtResource("1_15vtd")
 autoplay = true
-script = ExtResource("1_vwc8s")
+script = ExtResource("2_15vtd")
