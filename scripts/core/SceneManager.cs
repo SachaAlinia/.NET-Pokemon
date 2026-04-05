@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Game.Gameplay;
 using Godot;
 using Godot.Collections;
+using Game.Core;
 
 namespace Game.Core;
 
@@ -39,8 +40,31 @@ public partial class SceneManager : Node
 
 		IsChanging = true;
 
+		// 1. On lance le fondu au noir (FadeOut) avant de changer de niveau
 		await Instance.GetLevel(levelName);
 
+		// 2. --- GESTION DE LA MUSIQUE ---
+		// On récupère le MusicPlayer via l'AutoLoad (Singleton)
+		var musicPlayer = Instance.GetNode<MusicPlayer>("/root/MusicPlayer");
+
+		// On change la musique selon la destination
+		switch (levelName)
+		{
+			case LevelName.small_town:
+				musicPlayer.PlayMusic("res://assets/audio/music/music1.mp3", -15.0f);
+				break;
+
+			case LevelName.small_town_cave:
+				musicPlayer.PlayMusic("res://assets/audio/music/music2.mp3", -15.0f);
+				break;
+
+			default:
+				// Optionnel : Ajouter une musique par défaut si nécessaire
+				break;
+		}
+		// -----------------------------
+
+		// 3. Placement du joueur
 		if (spawn)
 		{
 			Instance.Spawn();
@@ -50,6 +74,7 @@ public partial class SceneManager : Node
 			Instance.Switch(trigger);
 		}
 
+		// 4. On revient à l'image (FadeIn) avec la nouvelle musique déjà lancée
 		await Instance.FadeIn();
 
 		IsChanging = false;
@@ -60,6 +85,7 @@ public partial class SceneManager : Node
 		if (CurrentLevel != null)
 		{
 			await Instance.FadeOut();
+			// Utilisation du GameManager pour retirer l'ancien niveau du ViewPort
 			GameManager.GetGameViewPort().RemoveChild(CurrentLevel);
 		}
 
@@ -71,6 +97,7 @@ public partial class SceneManager : Node
 		}
 		else
 		{
+			// Instancie la scène depuis le dossier levels
 			CurrentLevel = GD.Load<PackedScene>("res://scenes/levels/" + levelName + ".tscn").Instantiate<Level>();
 			AllLevels.Add(CurrentLevel);
 			GameManager.GetGameViewPort().AddChild(CurrentLevel);

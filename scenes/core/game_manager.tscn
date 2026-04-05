@@ -1,13 +1,13 @@
-[gd_scene load_steps=3 format=3 uid="uid://cedxn4kawkw32"]
+[gd_scene format=3 uid="uid://cedxn4kawkw32"]
 
 [ext_resource type="Script" uid="uid://dd8xo007yjw7v" path="res://scripts/core/GameManager.cs" id="1_ms0qm"]
 [ext_resource type="PackedScene" uid="uid://b1uwooeykwtdd" path="res://scenes/ui/message_manager.tscn" id="2_x6flg"]
 
-[node name="GameManager" type="Node" node_paths=PackedStringArray("GameViewPort")]
+[node name="GameManager" type="Node" unique_id=118190131 node_paths=PackedStringArray("GameViewPort")]
 script = ExtResource("1_ms0qm")
 GameViewPort = NodePath("Control/SubViewportContainer/SubViewport")
 
-[node name="Control" type="Control" parent="."]
+[node name="Control" type="Control" parent="." unique_id=328183370]
 texture_filter = 1
 layout_mode = 3
 anchors_preset = 15
@@ -16,7 +16,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="Control"]
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Control" unique_id=1978397423]
 texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
@@ -26,11 +26,11 @@ grow_horizontal = 2
 grow_vertical = 2
 stretch = true
 
-[node name="SubViewport" type="SubViewport" parent="Control/SubViewportContainer"]
+[node name="SubViewport" type="SubViewport" parent="Control/SubViewportContainer" unique_id=803470998]
 handle_input_locally = false
 size = Vector2i(1152, 648)
 size_2d_override = Vector2i(1152, 648)
 size_2d_override_stretch = true
 render_target_update_mode = 4
 
-[node name="MessageManager" parent="Control/SubViewportContainer/SubViewport" instance=ExtResource("2_x6flg")]
+[node name="MessageManager" parent="Control/SubViewportContainer/SubViewport" unique_id=1414085233 instance=ExtResource("2_x6flg")]
