@@ -51,11 +51,23 @@ public partial class SceneManager : Node
 		switch (levelName)
 		{
 			case LevelName.small_town:
-				musicPlayer.PlayMusic("res://assets/audio/music/music1.mp3", -15.0f);
+				musicPlayer.PlayMusic("res://assets/audio/music/music1.mp3", -25.0f);
 				break;
 
 			case LevelName.small_town_cave:
-				musicPlayer.PlayMusic("res://assets/audio/music/music2.mp3", -15.0f);
+				musicPlayer.PlayMusic("res://assets/audio/music/music2.mp3", -20.0f);
+				break;
+
+			case LevelName.small_town_greens_house:
+				musicPlayer.PlayMusic("res://assets/audio/music/music3.mp3", -23.0f);
+				break;
+
+			case LevelName.small_town_purples_house:
+				musicPlayer.PlayMusic("res://assets/audio/music/music3.mp3", -23.0f);
+				break;
+
+			case LevelName.small_town_pokemon_center:
+				musicPlayer.PlayMusic("res://assets/audio/music/music4.mp3", -28.0f);
 				break;
 
 			default:
