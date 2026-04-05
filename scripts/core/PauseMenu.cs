@@ -5,46 +5,58 @@ namespace Game.UI;
 
 public partial class PauseMenu : CanvasLayer
 {
+	// On cache le menu au démarrage
 	public override void _Ready()
 	{
-		// On cache le menu au démarrage
-		Visible = false;
+		Hide();
 
-		// Connexion des signaux des boutons
-		GetNode<Button>("MenuContainer/ResumeButton").Pressed += OnResumePressed;
-		GetNode<Button>("MenuContainer/QuitButton").Pressed += OnQuitPressed;
+		// On s'assure que le menu peut fonctionner même quand le jeu est figé
+		ProcessMode = ProcessModeEnum.Always;
+
+		// --- CONNEXION MANUELLE DES BOUTONS ---
+		// Vérifie bien que les noms "ResumeButton" et "QuitButton" sont EXACTEMENT 
+		// les mêmes que dans ton arbre de scène (la hiérarchie à gauche).
+		// Si tes boutons sont dans un Panel, le chemin est "Panel/ResumeButton"
+
+		var resumeBtn = GetNode<Button>("CenterContainer/MenuContainer/ResumeButton");
+		var quitBtn = GetNode<Button>("CenterContainer/MenuContainer/QuitButton");
+
+		resumeBtn.Pressed += OnResumeButtonPressed;
+		quitBtn.Pressed += OnQuitButtonPressed;
+
+		GD.Print("PauseMenu prêt et boutons connectés !");
 	}
 
-	public override void _Input(InputEvent @event)
+	public override void _UnhandledInput(InputEvent @event)
 	{
-		// Si on appuie sur Echap (UI Cancel par défaut dans Godot)
-		if (@event.IsActionPressed("ui_cancel"))
+		if (@event.IsActionPressed("ui_cancel")) // Touche Echap
 		{
 			TogglePause();
 		}
 	}
 
-	public void TogglePause()
+	private void TogglePause()
 	{
-		bool isPaused = !GetTree().Paused;
-		GetTree().Paused = isPaused;
-		Visible = isPaused;
+		// Inverse l'état de pause de l'arbre de scènes (le jeu s'arrête ou reprend)
+		GetTree().Paused = !GetTree().Paused;
 
-		if (isPaused)
-			GD.Print("Jeu en Pause");
-		else
-			GD.Print("Reprise du jeu");
+		// Affiche ou cache le menu
+		Visible = GetTree().Paused;
+
+		GD.Print(GetTree().Paused ? "Jeu en pause" : "Reprise du jeu");
 	}
 
-	private void OnResumePressed()
+	// Cette méthode sera appelée par le signal du bouton Resume
+	private void OnResumeButtonPressed()
 	{
-		TogglePause();
+		GD.Print("Clic sur Resume détecté !");
+		TogglePause(); // Relance le jeu et cache le menu
 	}
 
-	private void OnQuitPressed()
+	// Cette méthode sera appelée par le signal du bouton Quit
+	private void OnQuitButtonPressed()
 	{
-		// On quitte proprement en dépausant avant pour éviter des bugs
-		GetTree().Paused = false;
-		GetTree().Quit();
+		GD.Print("Clic sur Quit détecté ! Au revoir !");
+		GetTree().Quit(); // Ferme le jeu
 	}
 }
