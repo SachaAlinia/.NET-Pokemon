@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://cqucyky15fgep"]
+
+[ext_resource type="Script" uid="uid://jxvrxxywgiey" path="res://scripts/core/PauseMenu.cs" id="1_mjuw5"]
+
+[node name="PauseMenu" type="CanvasLayer" unique_id=379836489]
+process_mode = 3
+script = ExtResource("1_mjuw5")
+
+[node name="Menu" type="ColorRect" parent="." unique_id=516111581]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -172.5
+offset_top = -119.0
+offset_right = 172.5
+offset_bottom = 119.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.011764706, 0, 0, 0.8039216)
+
+[node name="Background" type="ColorRect" parent="." unique_id=767517798]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.07058824, 0.07058824, 0.07058824, 0.61960787)
+
+[node name="MenuContainer" type="CenterContainer" parent="." unique_id=959975604]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ResumeButton" type="Button" parent="MenuContainer" unique_id=2089744228]
+layout_mode = 2
+
+[node name="OptionsButton" type="Button" parent="MenuContainer" unique_id=35381265]
+layout_mode = 2
+
+[node name="QuitButton" type="Button" parent="MenuContainer" unique_id=807360970]
+layout_mode = 2

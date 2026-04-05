@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dd8xo007yjw7v" path="res://scripts/core/GameManager.cs" id="1_ms0qm"]
 [ext_resource type="PackedScene" uid="uid://b1uwooeykwtdd" path="res://scenes/ui/message_manager.tscn" id="2_x6flg"]
+[ext_resource type="PackedScene" uid="uid://cqucyky15fgep" path="res://scenes/core/pause_menu.tscn" id="3_lv3y2"]
 
 [node name="GameManager" type="Node" unique_id=118190131 node_paths=PackedStringArray("GameViewPort")]
 script = ExtResource("1_ms0qm")
@@ -34,3 +35,5 @@ size_2d_override_stretch = true
 render_target_update_mode = 4
 
 [node name="MessageManager" parent="Control/SubViewportContainer/SubViewport" unique_id=1414085233 instance=ExtResource("2_x6flg")]
+
+[node name="PauseMenu" parent="." unique_id=379836489 instance=ExtResource("3_lv3y2")]
