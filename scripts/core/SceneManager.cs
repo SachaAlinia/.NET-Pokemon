@@ -127,6 +127,16 @@ public partial class SceneManager : Node
 			case LevelName.small_town_cave:
 				musicPlayer.PlayMusic("res://assets/audio/music/music2.mp3", -17.0f);
 				break;
+			case LevelName.small_town_greens_house:
+				musicPlayer.PlayMusic("res://assets/audio/music/music3.mp3", -17.0f);
+				break;
+			case LevelName.small_town_purples_house:
+				musicPlayer.PlayMusic("res://assets/audio/music/music3.mp3", -17.0f);
+				break;
+			case LevelName.small_town_pokemon_center:
+				musicPlayer.PlayMusic("res://assets/audio/music/music4.mp3", -17.0f);
+				break;
+
 		}
 
 		// Si c'est le début du jeu (spawn), on crée le joueur.
