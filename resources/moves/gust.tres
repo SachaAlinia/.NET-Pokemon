@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="MoveResource" format=3 uid="uid://dte5t1v0ocila"]
+
+[ext_resource type="Script" uid="uid://dcrnc4ivh173w" path="res://scripts/gameplay/moves/MoveResource.cs" id="1_ancil"]
+
+[resource]
+script = ExtResource("1_ancil")
+Name = "gust"
+Category = 1
+PokemonType = 10
+Accuracy = 100
+MaxHits = -1
+MaxTurns = -1
+MinHits = -1
+MinTurns = -1
+Power = 40
+PP = 35

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="MoveResource" format=3 uid="uid://cbscq0swn3y3x"]
+
+[ext_resource type="Script" uid="uid://dcrnc4ivh173w" path="res://scripts/gameplay/moves/MoveResource.cs" id="1_gueil"]
+
+[resource]
+script = ExtResource("1_gueil")
+Name = "psychic"
+Category = 1
+PokemonType = 11
+Accuracy = 100
+MaxHits = -1
+MaxTurns = -1
+MinHits = -1
+MinTurns = -1
+Power = 90
+PP = 10
+StatChanges = Dictionary[int, int]({
+5: -1
+})

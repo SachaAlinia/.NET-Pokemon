@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="MoveResource" format=3 uid="uid://bwji1oav0lvfk"]
+
+[ext_resource type="Script" uid="uid://dcrnc4ivh173w" path="res://scripts/gameplay/moves/MoveResource.cs" id="1_qqjvh"]
+
+[resource]
+script = ExtResource("1_qqjvh")
+Name = "tri-attack"
+Category = 1
+PokemonType = 1
+Accuracy = 100
+MaxHits = -1
+MaxTurns = -1
+MinHits = -1
+MinTurns = -1
+Power = 80
+PP = 10
+AilmentChance = 20
+Ailment = 11
