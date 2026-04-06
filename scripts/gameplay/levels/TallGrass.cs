@@ -4,8 +4,12 @@ using Logger = Game.Core.Logger;
 
 namespace Game.Gameplay;
 
+/// <summary>
+/// Herbe haute pouvant déclencher un combat sauvage.
+/// </summary>
 public partial class TallGrass : Area2D
 {
+// Sprite animé utilisé pour l’objet.
     [Export]
     public AnimatedSprite2D AnimatedSprite2D;
 

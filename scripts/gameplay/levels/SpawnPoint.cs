@@ -3,6 +3,9 @@ using Godot;
 
 namespace Game.Gameplay;
 
+/// <summary>
+/// Point d’apparition du joueur ou du PNJ dans un niveau.
+/// </summary>
 public partial class SpawnPoint : Node2D
 {
 	public override void _EnterTree()

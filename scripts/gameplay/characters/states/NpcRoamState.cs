@@ -5,23 +5,36 @@ using Godot.Collections;
 
 namespace Game.Gameplay;
 
+/// <summary>
+/// État de déplacement libre du PNJ.
+/// </summary>
 public partial class NpcRoamState : State
 {
+    // Composant d’entrée du PNJ.
     [ExportCategory("State Vars")]
     [Export]
     public NpcInput NpcInput;
 
+    // Composant gérant le mouvement du personnage.
     [Export]
     public CharacterMovement CharacterMovement;
 
+    // Valeur de timer.
     private double timer = 2f;
+    // Liste interne des points de patrouille en cours.
     private Array<Vector2> currentPatrolPoints = [];
 
+    /// <summary>
+    /// Met à jour l'état de déplacement libre du PNJ chaque frame.
+    /// </summary>
+    /// <param name="delta">Temps écoulé depuis la dernière frame.</param>
     public override void _Process(double delta)
     {
+        // Ne rien faire si en mouvement.
         if (CharacterMovement.IsMoving())
             return;
 
+        // Gérer selon le type de mouvement.
         switch (NpcInput.Config.NpcMovementType)
         {
             case NpcMovementType.Wander:
@@ -36,8 +49,14 @@ public partial class NpcRoamState : State
         }
     }
 
+    /// <summary>
+    /// Gère le mouvement d'errance du PNJ.
+    /// </summary>
+    /// <param name="delta">Temps écoulé depuis la dernière frame.</param>
+    /// <param name="interval">Intervalle entre les mouvements.</param>
     private void HandlePatrol(double delta, double interval)
     {
+        // Ne rien faire si pas de points de patrouille.
         if (NpcInput.Config.PatrolPoints.Count == 0)
             return;
 
@@ -49,6 +68,7 @@ public partial class NpcRoamState : State
         Vector2 currentPosition = ((Npc)StateOwner).Position;
         var level = SceneManager.GetCurrentLevel();
 
+        // Calculer le chemin si pas de points courants.
         if (currentPatrolPoints.Count == 0)
         {
             var patrolPoint = NpcInput.Config.PatrolPoints[NpcInput.Config.PatrolIndex];
@@ -68,6 +88,7 @@ public partial class NpcRoamState : State
                 return;
         }
 
+        // Avancer vers le prochain point.
         if (((Npc)StateOwner).Position.DistanceTo(currentPatrolPoints[0]) < 1f)
         {
             currentPatrolPoints.RemoveAt(0);
@@ -77,6 +98,7 @@ public partial class NpcRoamState : State
         NpcInput.TargetPosition = currentPatrolPoints[0];
         level.TargetPosition = NpcInput.TargetPosition;
 
+        // Déterminer la direction.
         Vector2 difference = NpcInput.TargetPosition - currentPosition;
 
         if (Mathf.Abs(difference.X) > Mathf.Abs(difference.Y))
@@ -92,6 +114,11 @@ public partial class NpcRoamState : State
         timer = interval;
     }
 
+    /// <summary>
+    /// Gère le mouvement d'errance du PNJ.
+    /// </summary>
+    /// <param name="delta">Temps écoulé depuis la dernière frame.</param>
+    /// <param name="interval">Intervalle entre les mouvements.</param>
     private void HandleWander(double delta, double interval)
     {
         timer -= delta;
@@ -108,6 +135,11 @@ public partial class NpcRoamState : State
         timer = interval;
     }
 
+    /// <summary>
+    /// Gère le mouvement de regard autour du PNJ.
+    /// </summary>
+    /// <param name="delta">Temps écoulé depuis la dernière frame.</param>
+    /// <param name="interval">Intervalle entre les mouvements.</param>
     private void HandleLookAround(double delta, double interval)
     {
         timer -= delta;
@@ -117,6 +149,7 @@ public partial class NpcRoamState : State
 
         var (direction, targetPosition) = GetNewDirections();
 
+        // Ne tourner que si direction différente.
         if (direction == NpcInput.Direction)
         {
             timer = interval;
@@ -130,6 +163,10 @@ public partial class NpcRoamState : State
         timer = interval;
     }
 
+    /// <summary>
+    /// Génère une nouvelle direction et position cible pour le PNJ.
+    /// </summary>
+    /// <returns>Un tuple avec la direction et la position cible.</returns>
     private (Vector2, Vector2) GetNewDirections()
     {
         Vector2[] directions = [Vector2.Up, Vector2.Down, Vector2.Left, Vector2.Right];
@@ -142,6 +179,7 @@ public partial class NpcRoamState : State
             chosenDirection = directions[Globals.GetRandomNumberGenerator().RandiRange(0, directions.Length - 1)];
             Vector2 nextPosition = CharacterMovement.Character.Position + chosenDirection * Globals.GRID_SIZE;
 
+            // Pour l'errance, vérifier le rayon.
             if (NpcInput.Config.NpcMovementType == NpcMovementType.Wander)
             {
                 float distanceFromOrigin = nextPosition.DistanceTo(NpcInput.Config.WanderOrigin);
