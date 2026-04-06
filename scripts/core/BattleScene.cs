@@ -45,29 +45,68 @@ public partial class BattleScene : Node2D
 
 	public void SetupBattle()
 	{
-		// Initialisation des PV locaux
-		_currentPlayerHP = PlayerPokemon.BaseHp;
-		_currentEnemyHP = EnemyPokemon.BaseHp;
+		// 1. VERIFICATION DE SECURITE
+		// Si les ressources ne sont pas chargées, on arrête tout pour éviter un crash
+		if (PlayerPokemon == null || EnemyPokemon == null)
+		{
+			GD.PrintErr("ERREUR BATTLE : PlayerPokemon ou EnemyPokemon est NULL !");
+			return;
+		}
 
-		// Configuration Ennemi
-		_enemySprite.Texture = EnemyPokemon.FrontSprite;
-		_enemyName.Text = EnemyPokemon.Name.ToUpper();
-		_enemyLevel.Text = "Lv5";
-		_enemyHPBar.MaxValue = EnemyPokemon.BaseHp;
-		_enemyHPBar.Value = EnemyPokemon.BaseHp;
+		GD.Print($"Initialisation du combat : {PlayerPokemon.Name} vs {EnemyPokemon.Name}");
 
-		// Configuration Joueur
-		_playerSprite.Texture = PlayerPokemon.BackSprite;
-		_playerName.Text = PlayerPokemon.Name.ToUpper();
-		_playerLevel.Text = "Lv5";
-		_playerHPBar.MaxValue = PlayerPokemon.BaseHp;
-		_playerHPBar.Value = PlayerPokemon.BaseHp;
+		try
+		{
+			// 2. INITIALISATION DES PV
+			_currentPlayerHP = PlayerPokemon.BaseHp;
+			_currentEnemyHP = EnemyPokemon.BaseHp;
 
-		// Reset de l'UI
-		UpdateHPBarColor(_playerHPBar, _currentPlayerHP, PlayerPokemon.BaseHp);
-		UpdateHPBarColor(_enemyHPBar, _currentEnemyHP, EnemyPokemon.BaseHp);
+			// 3. CONFIGURATION ENNEMI (ONIX / SAUVAGE)
+			if (EnemyPokemon.FrontSprite != null)
+			{
+				_enemySprite.Texture = EnemyPokemon.FrontSprite;
+				_enemySprite.Show(); // On force l'affichage
+			}
+			else
+			{
+				GD.PrintErr($"ALERTE : Le sprite Front de {EnemyPokemon.Name} est manquant !");
+			}
 
-		_dialogueText.Text = $"Un {EnemyPokemon.Name} sauvage apparaît !";
+			_enemyName.Text = EnemyPokemon.Name.ToUpper();
+			_enemyLevel.Text = "Lv5";
+			_enemyHPBar.MaxValue = EnemyPokemon.BaseHp;
+			_enemyHPBar.Value = EnemyPokemon.BaseHp;
+
+			// 4. CONFIGURATION JOUEUR (DRACAUFEU)
+			if (PlayerPokemon.BackSprite != null)
+			{
+				_playerSprite.Texture = PlayerPokemon.BackSprite;
+				_playerSprite.Show(); // On force l'affichage
+			}
+			else
+			{
+				GD.PrintErr($"ALERTE : Le sprite Back de {PlayerPokemon.Name} est manquant !");
+			}
+
+			_playerName.Text = PlayerPokemon.Name.ToUpper();
+			_playerLevel.Text = "Lv5";
+			_playerHPBar.MaxValue = PlayerPokemon.BaseHp;
+			_playerHPBar.Value = PlayerPokemon.BaseHp;
+
+			// 5. MISE À JOUR VISUELLE (Couleurs des barres)
+			UpdateHPBarColor(_playerHPBar, _currentPlayerHP, PlayerPokemon.BaseHp);
+			UpdateHPBarColor(_enemyHPBar, _currentEnemyHP, EnemyPokemon.BaseHp);
+
+			// 6. TEXTE D'INTRODUCTION
+			_dialogueText.Text = $"Un {EnemyPokemon.Name.ToUpper()} sauvage apparaît !";
+
+			// On s'assure que le menu d'action est visible à la fin de l'intro
+			_actionMenu.Show();
+		}
+		catch (System.Exception e)
+		{
+			GD.PrintErr($"Erreur critique durant SetupBattle : {e.Message}");
+		}
 	}
 
 	// --- LOGIQUE DE COMBAT ---

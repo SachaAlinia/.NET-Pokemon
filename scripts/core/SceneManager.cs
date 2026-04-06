@@ -31,6 +31,53 @@ public partial class SceneManager : Node
 		Logger.Info("Loading scene manager ...");
 	}
 
+	// --- NOUVELLE MÉTHODE : LANCER LE COMBAT ---
+	public static async void StartBattle(PokemonResource wildPokemon)
+	{
+		if (IsChanging) return;
+		IsChanging = true;
+
+		Logger.Info($"Starting battle against {wildPokemon.Name}...");
+
+		// 1. On fige et on CACHE le joueur
+		var player = GameManager.GetPlayer();
+		if (player != null)
+		{
+			player.SetProcess(false);
+			player.Hide(); // TRÈS IMPORTANT : pour que le sprite disparaisse
+		}
+
+		// 2. Fondu au noir
+		await Instance.FadeOut();
+
+		// 3. Charger la scène de combat
+		var battleScenePrefab = GD.Load<PackedScene>("res://scenes/core/battle_scene.tscn");
+		var battleInstance = battleScenePrefab.Instantiate<BattleScene>();
+
+		// 4. Injecter les Pokémon AVANT de l'ajouter à l'arbre
+		battleInstance.EnemyPokemon = wildPokemon;
+		battleInstance.PlayerPokemon = GD.Load<PokemonResource>("res://Resources/Pokemon/charizard.tres");
+
+		// 5. Nettoyage de l'overworld
+		if (Instance.CurrentLevel != null)
+		{
+			// On le cache plutôt que de le supprimer pour revenir plus facilement après
+			Instance.CurrentLevel.Hide();
+			// Ou si tu veux vraiment le supprimer :
+			// GameManager.GetGameViewPort().RemoveChild(Instance.CurrentLevel);
+		}
+
+		// 6. Ajouter la scène de combat
+		GameManager.GetGameViewPort().AddChild(battleInstance);
+
+		// 7. Musique et Fin du fondu
+		var musicPlayer = Instance.GetNode<MusicPlayer>("/root/MusicPlayer");
+		musicPlayer.PlayMusic("res://assets/audio/music/battle_wild.mp3", -20.0f);
+
+		await Instance.FadeIn();
+		IsChanging = false;
+	}
+
 	public static async void ChangeLevel(LevelName levelName = LevelName.small_town, int trigger = 0, bool spawn = false)
 	{
 		while (IsChanging)
@@ -40,40 +87,27 @@ public partial class SceneManager : Node
 
 		IsChanging = true;
 
-		// 1. On lance le fondu au noir (FadeOut) avant de changer de niveau
 		await Instance.GetLevel(levelName);
 
-		// 2. --- GESTION DE LA MUSIQUE ---
-		// On récupère le MusicPlayer via l'AutoLoad (Singleton)
 		var musicPlayer = Instance.GetNode<MusicPlayer>("/root/MusicPlayer");
 
-		// Dans SceneManager.cs, à l'intérieur de la méthode ChangeLevel :
 		switch (levelName)
 		{
 			case LevelName.small_town:
 				musicPlayer.PlayMusic("res://assets/audio/music/music1.mp3", -22.0f);
 				break;
-
 			case LevelName.small_town_cave:
 				musicPlayer.PlayMusic("res://assets/audio/music/music2.mp3", -17.0f);
 				break;
-
 			case LevelName.small_town_greens_house:
 			case LevelName.small_town_purples_house:
 				musicPlayer.PlayMusic("res://assets/audio/music/music3.mp3", -20.0f);
 				break;
-
 			case LevelName.small_town_pokemon_center:
 				musicPlayer.PlayMusic("res://assets/audio/music/music4.mp3", -28.0f);
 				break;
-
-			default:
-				// Musique par défaut si le niveau n'est pas listé
-				break;
 		}
-		// -----------------------------
 
-		// 3. Placement du joueur
 		if (spawn)
 		{
 			Instance.Spawn();
@@ -83,9 +117,7 @@ public partial class SceneManager : Node
 			Instance.Switch(trigger);
 		}
 
-		// 4. On revient à l'image (FadeIn) avec la nouvelle musique déjà lancée
 		await Instance.FadeIn();
-
 		IsChanging = false;
 	}
 
@@ -94,7 +126,6 @@ public partial class SceneManager : Node
 		if (CurrentLevel != null)
 		{
 			await Instance.FadeOut();
-			// Utilisation du GameManager pour retirer l'ancien niveau du ViewPort
 			GameManager.GetGameViewPort().RemoveChild(CurrentLevel);
 		}
 
@@ -106,7 +137,6 @@ public partial class SceneManager : Node
 		}
 		else
 		{
-			// Instancie la scène depuis le dossier levels
 			CurrentLevel = GD.Load<PackedScene>("res://scenes/levels/" + levelName + ".tscn").Instantiate<Level>();
 			AllLevels.Add(CurrentLevel);
 			GameManager.GetGameViewPort().AddChild(CurrentLevel);
@@ -143,14 +173,14 @@ public partial class SceneManager : Node
 	public async Task FadeOut()
 	{
 		Tween tween = CreateTween();
-		tween.TweenProperty(FadeRect, "color:a", 1.0, 0.25);
+		tween.TweenProperty(FadeRect, "color:a", 1.25, 0.75);
 		await ToSignal(tween, "finished");
 	}
 
 	public async Task FadeIn()
 	{
 		Tween tween = CreateTween();
-		tween.TweenProperty(FadeRect, "color:a", 0.0, 0.25);
+		tween.TweenProperty(FadeRect, "color:a", 0.0, 1.25);
 		await ToSignal(tween, "finished");
 	}
 
