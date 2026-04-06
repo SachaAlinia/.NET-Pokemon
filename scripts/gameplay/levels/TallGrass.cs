@@ -44,7 +44,7 @@ public partial class TallGrass : Area2D
 
             // 1. On charge le Pokémon sauvage (Onix pour le test)
             // Assure-toi que le chemin vers le .tres est correct
-            var wildPokemon = GD.Load<PokemonResource>("res://Resources/Pokemon/onix.tres");
+            var wildPokemon = GD.Load<PokemonResource>("res://resources/pokemon/onix.tres");
 
             if (wildPokemon != null)
             {

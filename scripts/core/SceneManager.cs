@@ -10,76 +10,102 @@ namespace Game.Core;
 
 public partial class SceneManager : Node
 {
+	/// <summary>
+	/// LE SINGLETON : C'est une astuce pour que tous les autres fichiers 
+	/// puissent parler au SceneManager sans le chercher partout.
+	/// </summary>
 	public static SceneManager Instance { get; private set; }
+
+	/// <summary>
+	/// UN VERROU (Boolean) : Vrai ou Faux. 
+	/// Permet d'éviter que le joueur change de scène deux fois en même temps.
+	/// </summary>
 	public static bool IsChanging { get; private set; }
 
+	// [Export] permet de voir et de glisser-déposer ces objets directement dans l'éditeur Godot.
 	[ExportCategory("Scene Manager Variables")]
 	[Export]
-	public ColorRect FadeRect;
+	public ColorRect FadeRect; // Le rectangle qui sert à faire l'écran noir.
 
 	[Export]
-	public Level CurrentLevel;
+	public Level CurrentLevel; // La carte (le niveau) sur laquelle le joueur marche actuellement.
 
 	[Export]
-	public Array<Level> AllLevels;
+	public Array<Level> AllLevels; // Un sac (liste) qui contient tous les niveaux déjà visités pour les rouvrir plus vite.
 
+	/// <summary>
+	/// _Ready se lance une seule fois quand le SceneManager apparaît dans le jeu.
+	/// </summary>
 	public override void _Ready()
 	{
+		// On dit : "L'instance officielle, c'est moi !"
 		Instance = this;
+		// Au début, on ne change pas de scène, donc c'est faux.
 		IsChanging = false;
 
+		// Affiche un message dans la console pour dire que tout va bien.
 		Logger.Info("Loading scene manager ...");
 	}
 
-	// --- NOUVELLE MÉTHODE : LANCER LE COMBAT ---
+	/// <summary>
+	/// FONCTION DE COMBAT : Appelé quand on touche une haute herbe.
+	/// 'static' = on peut l'appeler via SceneManager.StartBattle()
+	/// 'async' = la fonction peut faire des pauses (attendre un fondu).
+	/// </summary>
 	public static async void StartBattle(PokemonResource wildPokemon)
 	{
+		// SI on est déjà en train de changer de scène, on ARRÊTE tout (return).
 		if (IsChanging) return;
-		IsChanging = true;
+		IsChanging = true; // On verrouille.
 
 		Logger.Info($"Starting battle against {wildPokemon.Name}...");
 
-		// 1. On fige et on CACHE le joueur
+		// On va chercher le joueur pour le "figer"
 		var player = GameManager.GetPlayer();
 		if (player != null)
 		{
+			// player.SetProcess(false) coupe les mouvements du joueur (il ne peut plus bouger).
 			player.SetProcess(false);
-			player.Hide(); // TRÈS IMPORTANT : pour que le sprite disparaisse
+			// .Hide() le rend invisible pour ne pas le voir derrière le combat.
+			player.Hide();
 		}
 
-		// 2. Fondu au noir
+		// 'await' = Le code s'arrête ici et attend que le fondu au noir soit fini.
 		await Instance.FadeOut();
 
-		// 3. Charger la scène de combat
+		// On charge le fichier du combat (.tscn) depuis le disque dur.
 		var battleScenePrefab = GD.Load<PackedScene>("res://scenes/core/battle_scene.tscn");
+		// On crée une "copie" réelle (Instantiate) de ce fichier.
 		var battleInstance = battleScenePrefab.Instantiate<BattleScene>();
 
-		// 4. Injecter les Pokémon AVANT de l'ajouter à l'arbre
+		// On donne au combat les infos du monstre sauvage et de notre Dracaufeu.
 		battleInstance.EnemyPokemon = wildPokemon;
-		battleInstance.PlayerPokemon = GD.Load<PokemonResource>("res://Resources/Pokemon/charizard.tres");
+		battleInstance.PlayerPokemon = GD.Load<PokemonResource>("res://resources/pokemon/charizard.tres");
 
-		// 5. Nettoyage de l'overworld
+		// On cache le décor du monde ouvert.
 		if (Instance.CurrentLevel != null)
 		{
-			// On le cache plutôt que de le supprimer pour revenir plus facilement après
 			Instance.CurrentLevel.Hide();
-			// Ou si tu veux vraiment le supprimer :
-			// GameManager.GetGameViewPort().RemoveChild(Instance.CurrentLevel);
 		}
 
-		// 6. Ajouter la scène de combat
+		// On "colle" l'écran de combat sur l'écran du joueur.
 		GameManager.GetGameViewPort().AddChild(battleInstance);
 
-		// 7. Musique et Fin du fondu
+		// On lance la musique de combat (on va la chercher dans le dossier audio).
 		var musicPlayer = Instance.GetNode<MusicPlayer>("/root/MusicPlayer");
 		musicPlayer.PlayMusic("res://assets/audio/music/battle_wild.mp3", -20.0f);
 
+		// On retire le voile noir.
 		await Instance.FadeIn();
-		IsChanging = false;
+		IsChanging = false; // On déverrouille, le changement est fini.
 	}
 
+	/// <summary>
+	/// CHANGER DE CARTE : Pour passer d'une ville à une route par exemple.
+	/// </summary>
 	public static async void ChangeLevel(LevelName levelName = LevelName.small_town, int trigger = 0, bool spawn = false)
 	{
+		// Tant que (while) le verrou est actif, on attend une image (process_frame).
 		while (IsChanging)
 		{
 			await Instance.ToSignal(Instance.GetTree(), "process_frame");
@@ -87,10 +113,12 @@ public partial class SceneManager : Node
 
 		IsChanging = true;
 
+		// On appelle la fonction pour charger les fichiers de la nouvelle carte.
 		await Instance.GetLevel(levelName);
 
 		var musicPlayer = Instance.GetNode<MusicPlayer>("/root/MusicPlayer");
 
+		// 'switch' est un trieur : selon le nom du niveau, on choisit la musique.
 		switch (levelName)
 		{
 			case LevelName.small_town:
@@ -99,87 +127,109 @@ public partial class SceneManager : Node
 			case LevelName.small_town_cave:
 				musicPlayer.PlayMusic("res://assets/audio/music/music2.mp3", -17.0f);
 				break;
-			case LevelName.small_town_greens_house:
-			case LevelName.small_town_purples_house:
-				musicPlayer.PlayMusic("res://assets/audio/music/music3.mp3", -20.0f);
-				break;
-			case LevelName.small_town_pokemon_center:
-				musicPlayer.PlayMusic("res://assets/audio/music/music4.mp3", -28.0f);
-				break;
 		}
 
+		// Si c'est le début du jeu (spawn), on crée le joueur.
 		if (spawn)
 		{
 			Instance.Spawn();
 		}
 		else
 		{
+			// Sinon on le déplace juste vers la porte (trigger).
 			Instance.Switch(trigger);
 		}
 
+		// On retire le noir.
 		await Instance.FadeIn();
 		IsChanging = false;
 	}
 
+	/// <summary>
+	/// CHARGEMENT : Va chercher le niveau dans la mémoire ou sur le disque.
+	/// </summary>
 	public async Task GetLevel(LevelName levelName)
 	{
 		if (CurrentLevel != null)
 		{
 			await Instance.FadeOut();
+			// On enlève l'ancien niveau de l'affichage.
 			GameManager.GetGameViewPort().RemoveChild(CurrentLevel);
 		}
 
+		// On regarde dans notre "sac" AllLevels si on a déjà chargé ce niveau avant.
 		CurrentLevel = AllLevels.FirstOrDefault(level => level.LevelName == levelName);
 
 		if (CurrentLevel != null)
 		{
+			// Si oui, on le réaffiche simplement.
 			GameManager.GetGameViewPort().AddChild(CurrentLevel);
 		}
 		else
 		{
+			// Si non, on charge le fichier .tscn et on l'ajoute à notre sac pour la prochaine fois.
 			CurrentLevel = GD.Load<PackedScene>("res://scenes/levels/" + levelName + ".tscn").Instantiate<Level>();
 			AllLevels.Add(CurrentLevel);
 			GameManager.GetGameViewPort().AddChild(CurrentLevel);
 		}
 	}
 
+	/// <summary>
+	/// APPARITION : Crée le joueur pour la première fois.
+	/// </summary>
 	public void Spawn()
 	{
+		// On cherche dans Godot tous les objets qui sont dans le groupe "SPAWNPOINTS".
 		var spawnPoints = CurrentLevel.GetTree().GetNodesInGroup(LevelGroup.SPAWNPOINTS.ToString());
 
 		if (spawnPoints.Count <= 0)
-			throw new Exception("Missing spawn point(s)!");
+			throw new Exception("Missing spawn point(s)!"); // Erreur si on a oublié d'en mettre un dans l'éditeur.
 
-		var spawnPoint = (SpawnPoint)spawnPoints[0];
+		var spawnPoint = (SpawnPoint)spawnPoints[0]; // On prend le premier point trouvé.
+													 // On crée le joueur à partir de son fichier .tscn.
 		var player = GD.Load<PackedScene>("res://scenes/characters/player.tscn").Instantiate<Player>();
 
-		GameManager.AddPlayer(player);
-		GameManager.GetPlayer().Position = spawnPoint.Position;
+		GameManager.AddPlayer(player); // On l'enregistre dans le GameManager.
+		GameManager.GetPlayer().Position = spawnPoint.Position; // On le pose au bon endroit.
 	}
 
+	/// <summary>
+	/// TELEPORTATION : Déplace le joueur quand il prend une porte.
+	/// </summary>
 	public void Switch(int trigger)
 	{
+		// On cherche les sorties de secours / portes.
 		var sceneTriggers = CurrentLevel.GetTree().GetNodesInGroup(LevelGroup.SCENETRIGGERS.ToString());
 
 		if (sceneTriggers.Count <= 0)
 			throw new Exception("Missing scene trigger(s)!");
 
+		// On cherche la porte qui a le numéro (trigger) demandé.
 		if (sceneTriggers.FirstOrDefault(st => ((SceneTrigger)st).CurrentLevelTrigger == trigger) is not SceneTrigger sceneTrigger)
 			throw new Exception($"Missing scene trigger {trigger}");
 
+		// On déplace le joueur à la position de la porte + un petit décalage (GRID_SIZE) pour qu'il ne rentre pas immédiatement.
 		GameManager.GetPlayer().Position = sceneTrigger.Position + sceneTrigger.EntryDirection * Globals.GRID_SIZE;
 	}
 
+	/// <summary>
+	/// FONDU NOIR : Utilise un 'Tween' (un moteur d'animation fluide).
+	/// </summary>
 	public async Task FadeOut()
 	{
 		Tween tween = CreateTween();
+		// On dit au rectangle noir : "Passe ton opacité (a) à 1.25 (totalement noir) en 0.75 secondes".
 		tween.TweenProperty(FadeRect, "color:a", 1.25, 0.75);
-		await ToSignal(tween, "finished");
+		await ToSignal(tween, "finished"); // On attend la fin de l'animation.
 	}
 
+	/// <summary>
+	/// FONDU TRANSPARENT : Rend le rectangle noir invisible.
+	/// </summary>
 	public async Task FadeIn()
 	{
 		Tween tween = CreateTween();
+		// On repasse l'opacité à 0.
 		tween.TweenProperty(FadeRect, "color:a", 0.0, 1.25);
 		await ToSignal(tween, "finished");
 	}

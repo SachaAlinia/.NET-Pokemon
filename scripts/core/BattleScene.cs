@@ -1,31 +1,34 @@
 using Game.Gameplay;
 using Godot;
 using System;
-using System.Threading.Tasks; // Pour utiliser Task.Delay (pauses entre les messages)
+using System.Threading.Tasks;
 
 public partial class BattleScene : Node2D
 {
+	// [Export] : On glisse les fichiers "PokemonResource" (statistiques) ici.
 	[Export] public PokemonResource PlayerPokemon;
 	[Export] public PokemonResource EnemyPokemon;
 
-	// Variables pour suivre les PV actuels pendant le combat
+	// 'int' = Nombre entier. On stocke les PV ici pour ne pas abîmer le fichier original.
 	private int _currentPlayerHP;
 	private int _currentEnemyHP;
 
-	// Références aux nodes
+	// Les "Variables de nœuds" : Ce sont des raccourcis vers les éléments visuels de ton écran.
 	private Sprite2D _playerSprite, _enemySprite;
 	private Label _playerName, _playerLevel, _enemyName, _enemyLevel;
 	private TextureProgressBar _playerHPBar, _enemyHPBar;
 	private RichTextLabel _dialogueText;
 	private Control _actionMenu;
 
+	/// <summary>
+	/// _Ready : Le code va chercher chaque élément sur l'écran au démarrage du combat.
+	/// </summary>
 	public override void _Ready()
 	{
-		// Récupération des Sprites
+		// GetNode = "Va chercher l'objet qui s'appelle comme ça dans la liste à gauche dans Godot".
 		_enemySprite = GetNode<Sprite2D>("BattlePositions/EnemySpawn/EnemySprite");
 		_playerSprite = GetNode<Sprite2D>("BattlePositions/PlayerSpawn/PlayerSprite");
 
-		// Récupération de l'UI
 		_enemyName = GetNode<Label>("UI/EnemyHUD/Name");
 		_enemyLevel = GetNode<Label>("UI/EnemyHUD/Level");
 		_enemyHPBar = GetNode<TextureProgressBar>("UI/EnemyHUD/HP");
@@ -37,103 +40,69 @@ public partial class BattleScene : Node2D
 		_dialogueText = GetNode<RichTextLabel>("UI/DialogueLabel");
 		_actionMenu = GetNode<Control>("UI/ActionMenu");
 
-		// Connexion du bouton Attaque (Assure-toi que le nom du node est exact)
+		// ÉCOUTEUR : Quand on appuie sur le bouton "Attaque", lance la fonction OnAttackPressed.
 		GetNode<Button>("UI/ActionMenu/Attaque").Pressed += OnAttackPressed;
 
-		SetupBattle();
+		SetupBattle(); // Configure les noms et les barres de vie.
 	}
 
+	/// <summary>
+	/// INITIALISATION : Remplit les étiquettes de texte avec les vraies infos du Pokémon.
+	/// </summary>
 	public void SetupBattle()
 	{
-		// 1. VERIFICATION DE SECURITE
-		// Si les ressources ne sont pas chargées, on arrête tout pour éviter un crash
-		if (PlayerPokemon == null || EnemyPokemon == null)
-		{
-			GD.PrintErr("ERREUR BATTLE : PlayerPokemon ou EnemyPokemon est NULL !");
-			return;
-		}
+		if (PlayerPokemon == null || EnemyPokemon == null) return;
 
-		GD.Print($"Initialisation du combat : {PlayerPokemon.Name} vs {EnemyPokemon.Name}");
+		// On prend les PV de base définis dans le fichier de ressource.
+		_currentPlayerHP = PlayerPokemon.BaseHp;
+		_currentEnemyHP = EnemyPokemon.BaseHp;
 
-		try
-		{
-			// 2. INITIALISATION DES PV
-			_currentPlayerHP = PlayerPokemon.BaseHp;
-			_currentEnemyHP = EnemyPokemon.BaseHp;
+		// On met les images correspondantes.
+		_enemySprite.Texture = EnemyPokemon.FrontSprite;
+		_playerSprite.Texture = PlayerPokemon.BackSprite;
 
-			// 3. CONFIGURATION ENNEMI (ONIX / SAUVAGE)
-			if (EnemyPokemon.FrontSprite != null)
-			{
-				_enemySprite.Texture = EnemyPokemon.FrontSprite;
-				_enemySprite.Show(); // On force l'affichage
-			}
-			else
-			{
-				GD.PrintErr($"ALERTE : Le sprite Front de {EnemyPokemon.Name} est manquant !");
-			}
+		// .ToUpper() transforme le texte en MAJUSCULES.
+		_enemyName.Text = EnemyPokemon.Name.ToUpper();
+		_enemyHPBar.MaxValue = EnemyPokemon.BaseHp; // La barre est pleine au max des PV.
+		_enemyHPBar.Value = EnemyPokemon.BaseHp;
 
-			_enemyName.Text = EnemyPokemon.Name.ToUpper();
-			_enemyLevel.Text = "Lv5";
-			_enemyHPBar.MaxValue = EnemyPokemon.BaseHp;
-			_enemyHPBar.Value = EnemyPokemon.BaseHp;
+		_playerName.Text = PlayerPokemon.Name.ToUpper();
+		_playerHPBar.MaxValue = PlayerPokemon.BaseHp;
+		_playerHPBar.Value = PlayerPokemon.BaseHp;
 
-			// 4. CONFIGURATION JOUEUR (DRACAUFEU)
-			if (PlayerPokemon.BackSprite != null)
-			{
-				_playerSprite.Texture = PlayerPokemon.BackSprite;
-				_playerSprite.Show(); // On force l'affichage
-			}
-			else
-			{
-				GD.PrintErr($"ALERTE : Le sprite Back de {PlayerPokemon.Name} est manquant !");
-			}
-
-			_playerName.Text = PlayerPokemon.Name.ToUpper();
-			_playerLevel.Text = "Lv5";
-			_playerHPBar.MaxValue = PlayerPokemon.BaseHp;
-			_playerHPBar.Value = PlayerPokemon.BaseHp;
-
-			// 5. MISE À JOUR VISUELLE (Couleurs des barres)
-			UpdateHPBarColor(_playerHPBar, _currentPlayerHP, PlayerPokemon.BaseHp);
-			UpdateHPBarColor(_enemyHPBar, _currentEnemyHP, EnemyPokemon.BaseHp);
-
-			// 6. TEXTE D'INTRODUCTION
-			_dialogueText.Text = $"Un {EnemyPokemon.Name.ToUpper()} sauvage apparaît !";
-
-			// On s'assure que le menu d'action est visible à la fin de l'intro
-			_actionMenu.Show();
-		}
-		catch (System.Exception e)
-		{
-			GD.PrintErr($"Erreur critique durant SetupBattle : {e.Message}");
-		}
+		// On écrit le texte de bienvenue dans la boîte de dialogue.
+		_dialogueText.Text = $"Un {EnemyPokemon.Name.ToUpper()} sauvage apparaît !";
+		_actionMenu.Show(); // On montre les boutons "Attaquer/Fuir".
 	}
 
-	// --- LOGIQUE DE COMBAT ---
-
+	/// <summary>
+	/// BOUCLE DE TOUR : Le joueur attaque, puis l'ennemi répond.
+	/// </summary>
 	private async void OnAttackPressed()
 	{
-		_actionMenu.Hide(); // Cache le menu pendant l'attaque
+		_actionMenu.Hide(); // On cache le menu pour pas qu'il clique 50 fois pendant l'animation.
 
-		// 1. Tour du Joueur
+		// --- 1. TOUR DU JOUEUR ---
 		_dialogueText.Text = $"{PlayerPokemon.Name.ToUpper()} attaque !";
 
-		// Calcul simple : Attaque vs Défense (minimum 1 dégât)
+		// CALCUL : (Attaque de l'assaillant - Défense de la cible). 
+		// Math.Max(1, ...) permet de faire au moins 1 dégât même si l'ennemi a une défense énorme.
 		int damage = Math.Max(1, PlayerPokemon.BaseAttack - EnemyPokemon.BaseDefense);
-		_currentEnemyHP = Math.Max(0, _currentEnemyHP - damage);
+		_currentEnemyHP = Math.Max(0, _currentEnemyHP - damage); // On descend les PV sans aller sous 0.
 
-		await Task.Delay(1000); // Pause pour lire le texte
+		await Task.Delay(1000); // On attend 1 seconde pour que l'utilisateur lise.
 
 		UpdateHealthVisual(_enemyHPBar, _currentEnemyHP, EnemyPokemon.BaseHp);
 
+		// Si l'ennemi n'a plus de PV
 		if (_currentEnemyHP <= 0)
 		{
 			_dialogueText.Text = $"{EnemyPokemon.Name.ToUpper()} est K.O. !";
-			return;
+			return; // Le combat s'arrête ici.
 		}
 
-		// 2. Tour de l'Ennemi (IA basique)
-		await Task.Delay(1500);
+		// --- 2. TOUR DE L'ENNEMI ---
+		await Task.Delay(1500); // Pause entre les deux attaques.
 		_dialogueText.Text = $"{EnemyPokemon.Name.ToUpper()} sauvage attaque !";
 
 		int enemyDamage = Math.Max(1, EnemyPokemon.BaseAttack - PlayerPokemon.BaseDefense);
@@ -149,27 +118,42 @@ public partial class BattleScene : Node2D
 		else
 		{
 			await Task.Delay(1000);
-			_actionMenu.Show(); // Redonne la main au joueur
+			_actionMenu.Show(); // Le joueur a survécu, on réaffiche les boutons.
 			_dialogueText.Text = $"Que doit faire {_playerName.Text} ?";
 		}
 	}
 
-	// --- FONCTIONS UTILITAIRES ---
-
+	/// <summary>
+	/// ANIMATION : Fait descendre la barre de vie doucement au lieu d'un coup sec.
+	/// </summary>
 	private void UpdateHealthVisual(TextureProgressBar bar, int currentHP, int maxHP)
 	{
-		// Animation de la barre (Tween)
+		// On crée un Tween (moteur d'animation fluide).
 		Tween tween = GetTree().CreateTween();
+		// On anime la propriété "value" de la barre jusqu'aux nouveaux PV en 0.5 secondes.
 		tween.TweenProperty(bar, "value", currentHP, 0.5f).SetTrans(Tween.TransitionType.Circ);
 
 		UpdateHPBarColor(bar, currentHP, maxHP);
 	}
 
+	/// <summary>
+	/// COULEUR : Change la couleur de la barre selon la vie.
+	/// </summary>
 	private void UpdateHPBarColor(TextureProgressBar bar, int currentHP, int maxHP)
 	{
-		float ratio = (float)currentHP / maxHP;
-		if (ratio < 0.2f) bar.TintProgress = Colors.Red;
-		else if (ratio < 0.5f) bar.TintProgress = Colors.Orange;
-		else bar.TintProgress = Colors.Blue;
+		float ratio = (float)currentHP / maxHP; // Calcul du pourcentage (ex: 0.5 pour 50%).
+
+		if (ratio < 0.2f) // Moins de 20%
+		{
+			bar.TintProgress = Colors.Red; // Rouge (danger)
+		}
+		else if (ratio < 0.5f) // Moins de 50%
+		{
+			bar.TintProgress = Colors.Orange; // Orange
+		}
+		else
+		{
+			bar.TintProgress = Colors.Blue; // Bleu (santé OK)
+		}
 	}
 }
