@@ -118,7 +118,7 @@ public partial class SceneManager : Node
 
 		var musicPlayer = Instance.GetNode<MusicPlayer>("/root/MusicPlayer");
 
-		// 'switch' est un trieur : selon le nom du niveau, on choisit la musique.
+		//selon le nom du niveau, on choisit la musique.
 		switch (levelName)
 		{
 			case LevelName.small_town:
