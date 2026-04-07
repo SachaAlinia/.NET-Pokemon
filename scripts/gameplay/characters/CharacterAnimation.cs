@@ -4,109 +4,75 @@ using Godot;
 namespace Game.Gameplay;
 
 /// <summary>
-/// Composant de gestion des animations du personnage.
+/// Ce composant gère les images. Il hérite de 'AnimatedSprite2D', 
+/// donc il possède déjà toutes les fonctions pour jouer des animations.
 /// </summary>
 public partial class CharacterAnimation : AnimatedSprite2D
 {
+    // --- CONNEXIONS ---
     [ExportCategory("Nodes")]
-    [Export]
-    // Référence au composant d'entrée du personnage.
-    public CharacterInput CharacterInput;
-
-    [Export]
-    // Référence au composant de mouvement du personnage.
-    public CharacterMovement CharacterMovement;
+    [Export] public CharacterInput CharacterInput; // Pour savoir dans quelle direction on regarde
+    [Export] public CharacterMovement CharacterMovement; // Pour savoir si on est en train de bouger
 
     [ExportCategory("Animations Vars")]
     [Export]
-    // Animation courante du personnage.
+    // Stocke l'état actuel (ex: idle_down). Utilise l'Enum qu'on a vu plus tôt.
     public ECharacterAnimation ECharacterAnimation = ECharacterAnimation.idle_down;
 
     /// <summary>
-    /// Initialise le composant d'animation au démarrage.
+    /// Se lance au démarrage.
     /// </summary>
     public override void _Ready()
     {
-        // Connecter le signal d'animation du mouvement.
+        // ON ÉCOUTE LE MOUVEMENT : 
+        // Dès que le script de mouvement dit "Hé, je change d'animation", 
+        // il appelle notre fonction 'PlayAnimation'.
         CharacterMovement.Animation += PlayAnimation;
-
-        Game.Core.Logger.Info("Loading player animation component ...");
     }
 
     /// <summary>
-    /// Joue l'animation appropriée selon le type et la direction.
+    /// Choisit la bonne image à afficher.
     /// </summary>
-    /// <param name="animationType">Type d'animation demandé (walk, turn, idle).</param>
+    /// <param name="animationType">Le mot envoyé : "walk", "turn" ou "idle".</param>
     public void PlayAnimation(string animationType)
     {
+        // On mémorise l'ancienne animation pour voir si elle change.
         ECharacterAnimation previousAnimation = ECharacterAnimation;
 
-        // Ne pas changer d'animation si en mouvement.
+        // SÉCURITÉ : Si le personnage est déjà en train de glisser vers une case, 
+        // on ne change pas son image au milieu du chemin.
         if (CharacterMovement.IsMoving())
             return;
 
-        // Sélectionner l'animation selon le type et la direction.
+        // LE TRIEUR (Switch) : Selon le mot reçu, on regarde la direction.
         switch (animationType)
         {
-            case "walk":
-                if (CharacterInput.Direction == Vector2.Up)
-                {
-                    ECharacterAnimation = ECharacterAnimation.walk_up;
-                }
-                else if (CharacterInput.Direction == Vector2.Down)
-                {
-                    ECharacterAnimation = ECharacterAnimation.walk_down;
-                }
-                else if (CharacterInput.Direction == Vector2.Left)
-                {
-                    ECharacterAnimation = ECharacterAnimation.walk_left;
-                }
-                else if (CharacterInput.Direction == Vector2.Right)
-                {
-                    ECharacterAnimation = ECharacterAnimation.walk_right;
-                }
+            case "walk": // Si on marche
+                if (CharacterInput.Direction == Vector2.Up) ECharacterAnimation = ECharacterAnimation.walk_up;
+                else if (CharacterInput.Direction == Vector2.Down) ECharacterAnimation = ECharacterAnimation.walk_down;
+                else if (CharacterInput.Direction == Vector2.Left) ECharacterAnimation = ECharacterAnimation.walk_left;
+                else if (CharacterInput.Direction == Vector2.Right) ECharacterAnimation = ECharacterAnimation.walk_right;
                 break;
-            case "turn":
-                if (CharacterInput.Direction == Vector2.Up)
-                {
-                    ECharacterAnimation = ECharacterAnimation.turn_up;
-                }
-                else if (CharacterInput.Direction == Vector2.Down)
-                {
-                    ECharacterAnimation = ECharacterAnimation.turn_down;
-                }
-                else if (CharacterInput.Direction == Vector2.Left)
-                {
-                    ECharacterAnimation = ECharacterAnimation.turn_left;
-                }
-                else if (CharacterInput.Direction == Vector2.Right)
-                {
-                    ECharacterAnimation = ECharacterAnimation.turn_right;
-                }
+
+            case "turn": // Si on pivote sur place
+                if (CharacterInput.Direction == Vector2.Up) ECharacterAnimation = ECharacterAnimation.turn_up;
+                else if (CharacterInput.Direction == Vector2.Down) ECharacterAnimation = ECharacterAnimation.turn_down;
+                else if (CharacterInput.Direction == Vector2.Left) ECharacterAnimation = ECharacterAnimation.turn_left;
+                else if (CharacterInput.Direction == Vector2.Right) ECharacterAnimation = ECharacterAnimation.turn_right;
                 break;
-            case "idle":
-                if (CharacterInput.Direction == Vector2.Up)
-                {
-                    ECharacterAnimation = ECharacterAnimation.idle_up;
-                }
-                else if (CharacterInput.Direction == Vector2.Down)
-                {
-                    ECharacterAnimation = ECharacterAnimation.idle_down;
-                }
-                else if (CharacterInput.Direction == Vector2.Left)
-                {
-                    ECharacterAnimation = ECharacterAnimation.idle_left;
-                }
-                else if (CharacterInput.Direction == Vector2.Right)
-                {
-                    ECharacterAnimation = ECharacterAnimation.idle_right;
-                }
+
+            case "idle": // Si on ne fait rien
+                if (CharacterInput.Direction == Vector2.Up) ECharacterAnimation = ECharacterAnimation.idle_up;
+                else if (CharacterInput.Direction == Vector2.Down) ECharacterAnimation = ECharacterAnimation.idle_down;
+                else if (CharacterInput.Direction == Vector2.Left) ECharacterAnimation = ECharacterAnimation.idle_left;
+                else if (CharacterInput.Direction == Vector2.Right) ECharacterAnimation = ECharacterAnimation.idle_right;
                 break;
         }
 
-        // Jouer l'animation si elle a changé.
+        // Si l'animation est différente de la précédente, on demande à Godot de la jouer.
         if (previousAnimation != ECharacterAnimation)
         {
+            // .ToString() transforme l'Enum (walk_up) en texte ("walk_up") pour Godot.
             Play(ECharacterAnimation.ToString());
         }
     }

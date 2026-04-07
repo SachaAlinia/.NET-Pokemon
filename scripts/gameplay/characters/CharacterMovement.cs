@@ -7,121 +7,67 @@ using Logger = Game.Core.Logger;
 
 namespace Game.Gameplay;
 
-/// <summary>
-/// Gère le mouvement du personnage.
-/// </summary>
 public partial class CharacterMovement : Node
 {
-    [Signal]
-    public delegate void AnimationEventHandler(string animationType);
+    // Signal envoyé à l'Animation pour dire "Je marche" ou "Je m'arrête"
+    [Signal] public delegate void AnimationEventHandler(string animationType);
 
     [ExportCategory("Nodes")]
-    [Export]
-    // Référence au nœud représentant le personnage.
-    public Node2D Character;
-
-    [Export]
-    // Composant qui fournit les commandes de déplacement.
-    public CharacterInput CharacterInput;
+    [Export] public Node2D Character; // L'objet physique (le corps)
+    [Export] public CharacterInput CharacterInput; // Le cerveau qui donne les ordres
 
     [ExportCategory("Movement")]
-    [Export]
-    // Position cible vers laquelle le personnage se dirige.
-    public Vector2 TargetPosition = Vector2.Down;
-
-    [Export]
-    // Indique si le personnage est en train de marcher.
-    public bool IsWalking = false;
-
-    [Export]
-    // Animation de mouvement actuelle du personnage.
+    public Vector2 TargetPosition = Vector2.Down; // La case où on veut aller
+    public bool IsWalking = false; // Est-ce qu'on est en train de glisser vers la case ?
     public ECharacterMovement ECharacterMovement = ECharacterMovement.WALKING;
 
     [ExportCategory("Jumping")]
-    [Export]
-    // Position de départ du saut.
-    public Vector2 StartPosition;
+    public Vector2 StartPosition; // Où on était avant de sauter
+    public bool IsJumping = false; // Est-ce qu'on est en l'air ?
+    public float JumpHeight = 10f; // Hauteur du petit bond
+    public float LerpSpeed = 2f; // Vitesse de la transition
+    public float Progress = 0f; // 0 = début du saut, 1 = fin du saut
 
-    [Export]
-    // Indique si le personnage est en train de sauter.
-    public bool IsJumping = false;
-
-    [Export]
-    // Hauteur du saut.
-    public float JumpHeight = 10f;
-
-    [Export]
-    // Vitesse de l'interpolation du saut et du déplacement.
-    public float LerpSpeed = 2f;
-
-    [Export]
-    // Progression du mouvement ou du saut.
-    public float Progress = 0f;
-
-    // Indique si ce composant appartient au joueur.
     private bool isPlayer = true;
 
-    /// <summary>
-    /// Initialise le composant de mouvement et lie les événements d'entrée.
-    /// </summary>
     public override void _Ready()
     {
-        // Connecter les signaux d'entrée.
-        CharacterInput.Walk += StartMoving;
-        CharacterInput.Turn += Turn;
+        // BRANCHEMENT : On relie les ordres du cerveau (Input) à nos fonctions.
+        CharacterInput.Walk += StartMoving; // Si le cerveau dit "Marche", on lance StartMoving.
+        CharacterInput.Turn += Turn;        // Si le cerveau dit "Tourne", on lance Turn.
 
-        // Déterminer si c'est le joueur.
-        if (GetParent().Name != "Player")
-            isPlayer = false;
+        if (GetParent().Name != "Player") isPlayer = false;
 
         Logger.Info("Loading character movement component ...");
     }
 
-    /// <summary>
-    /// Met à jour le mouvement du personnage à chaque frame.
-    /// </summary>
-    /// <param name="delta">Temps écoulé depuis la dernière image.</param>
     public override void _Process(double delta)
     {
-        // Mettre à jour la marche et le saut.
+        // À chaque image, on déplace le personnage s'il doit marcher ou sauter.
         Walk(delta);
         Jump(delta);
 
-        // Si pas en mouvement, jouer l'animation idle si applicable.
+        // Si on ne bouge pas, on envoie le signal "idle" pour l'animation de repos.
         if (!IsMoving())
         {
-            if (isPlayer)
-            {
-                if (Modules.IsActionPressed())
-                    return;
-            }
-
+            if (isPlayer && Modules.IsActionPressed()) return;
             EmitSignal(SignalName.Animation, "idle");
         }
     }
 
-    /// <summary>
-    /// Vérifie si le personnage est en mouvement.
-    /// </summary>
-    /// <returns>True si le personnage marche ou saute.</returns>
-    public bool IsMoving()
-    {
-        return IsWalking || IsJumping;
-    }
+    public bool IsMoving() => IsWalking || IsJumping;
 
     /// <summary>
-    /// Récupère les colliders présents à la position cible.
+    /// DETECTION : Regarde ce qu'il y a sur la case visée.
     /// </summary>
-    /// <param name="targetPosition">Position cible en pixels.</param>
     public (Vector2, Array<Dictionary>) GetTargetColliders(Vector2 targetPosition)
     {
         var spaceState = GetViewport().GetWorld2D().DirectSpaceState;
 
-        // Ajuster la position pour le centre de la cellule.
-        Vector2 adjustedTargetPosition = targetPosition;
-        adjustedTargetPosition.X += 8;
-        adjustedTargetPosition.Y += 8;
+        // On vise le milieu de la case (8 pixels car la grille fait 16)
+        Vector2 adjustedTargetPosition = targetPosition + new Vector2(8, 8);
 
+        // On crée une "requête" de collision à cet endroit.
         var query = new PhysicsPointQueryParameters2D
         {
             Position = adjustedTargetPosition,
@@ -133,109 +79,73 @@ public partial class CharacterMovement : Node
     }
 
     /// <summary>
-    /// Détermine si la position cible est occupée par un obstacle.
+    /// OBSTACLE : Est-ce qu'on a le droit de marcher là ?
     /// </summary>
-    /// <param name="targetPosition">Position cible en pixels.</param>
     public bool IsTargetOccupied(Vector2 targetPosition)
     {
         var (adjustedTargetPosition, result) = GetTargetColliders(targetPosition);
 
-        if (result.Count == 0)
-        {
-            return false;
-        }
-        else if (result.Count == 1)
-        {
-            var collider = (Node)(GodotObject)result[0]["collider"];
-            var colliderType = collider.GetType().Name;
+        if (result.Count == 0) return false; // Rien ? Alors la case est libre !
 
-            // Logique spécifique selon le type de collider.
-            return colliderType switch
-            {
-                "Sign" => true,
-                "TallGrass" => false,
-                "TileMapLayer" => isPlayer ? GetTileMapLayerCollision((TileMapLayer)collider, adjustedTargetPosition) : true,
-                "SceneTrigger" => !isPlayer,
-                _ => true,
-            };
-        }
-        else
+        var collider = (Node)(GodotObject)result[0]["collider"];
+        var colliderType = collider.GetType().Name;
+
+        // Selon l'objet, on bloque ou pas :
+        return colliderType switch
         {
-            return true;
-        }
+            "Sign" => true,       // Un panneau bloque le passage
+            "TallGrass" => false, // L'herbe ne bloque pas
+            "TileMapLayer" => isPlayer ? GetTileMapLayerCollision((TileMapLayer)collider, adjustedTargetPosition) : true,
+            "SceneTrigger" => !isPlayer, // Le joueur passe à travers les portes, mais pas les PNJ
+            _ => true,
+        };
     }
 
     /// <summary>
-    /// Vérifie la collision sur une couche de tiles et gère les sauts sur corniche.
+    /// LES CORNICHES (Ledges) : Pour sauter comme dans Pokémon.
     /// </summary>
-    /// <param name="tileMapLayer">Couche de tiles à tester.</param>
-    /// <param name="adjustedTargetPosition">Position ajustée pour le test.</param>
     public bool GetTileMapLayerCollision(TileMapLayer tileMapLayer, Vector2 adjustedTargetPosition)
     {
         Vector2I tileCoordinates = tileMapLayer.LocalToMap(adjustedTargetPosition);
         TileData tileData = tileMapLayer.GetCellTileData(tileCoordinates);
 
-        if (tileData == null)
-            return true;
+        if (tileData == null) return true;
 
+        // On regarde si la case a une donnée spéciale "LEDGE" (corniche)
         var ledgeDirection = (string)tileData.GetCustomData("LEDGE");
 
-        if (ledgeDirection == null)
-            return true;
+        if (ledgeDirection == null) return true;
 
-        Logger.Info(ledgeDirection);
-
-        // Gérer les sauts selon la direction de la corniche.
-        switch (ledgeDirection)
+        // Si on va dans la direction de la corniche (ex: vers le BAS), on autorise le mouvement mais en mode SAUT.
+        if (ledgeDirection == "DOWN" && CharacterInput.Direction == Vector2.Down)
         {
-            case "DOWN":
-                if (CharacterInput.Direction == Vector2.Down)
-                {
-                    ECharacterMovement = ECharacterMovement.JUMPING;
-                    return false;
-                }
-                break;
-            case "LEFT":
-                if (CharacterInput.Direction == Vector2.Left)
-                {
-                    ECharacterMovement = ECharacterMovement.JUMPING;
-                    return false;
-                }
-                break;
-            case "RIGHT":
-                if (CharacterInput.Direction == Vector2.Right)
-                {
-                    ECharacterMovement = ECharacterMovement.JUMPING;
-                    return false;
-                }
-                break;
+            ECharacterMovement = ECharacterMovement.JUMPING;
+            return false; // False = ce n'est pas un obstacle, on peut y aller !
         }
-
+        // ... (pareil pour Gauche/Droite)
         return true;
     }
 
     /// <summary>
-    /// Lance le déplacement si la case cible est libre.
+    /// DÉPART : On vérifie si on peut bouger et on lance le mouvement.
     /// </summary>
     public void StartMoving()
     {
-        // Ne pas bouger si changement de niveau en cours.
-        if (SceneManager.IsChanging)
-            return;
+        if (SceneManager.IsChanging) return;
 
+        // On calcule la case d'arrivée : Position Actuelle + Direction * 16 pixels.
         TargetPosition = Character.Position + CharacterInput.Direction * Globals.GRID_SIZE;
 
-        // Vérifier si on peut bouger.
+        // Si on ne bouge pas déjà ET que la case est libre ET qu'on arrive à la réserver (pour éviter que deux PNJ se rentrent dedans).
         if (!IsMoving() && !IsTargetOccupied(TargetPosition) && SceneManager.GetCurrentLevel().ReserveTile(TargetPosition))
         {
             EmitSignal(SignalName.Animation, "walk");
-            Logger.Info($"{GetParent().Name} moving from {Character.Position} to {TargetPosition}");
 
-            // Gérer le saut si nécessaire.
             if (ECharacterMovement == ECharacterMovement.JUMPING)
             {
                 Progress = 0f;
                 StartPosition = Character.Position;
+                // Un saut fait avancer de DEUX cases (32 pixels).
                 TargetPosition = Character.Position + CharacterInput.Direction * (Globals.GRID_SIZE * 2);
                 IsJumping = true;
             }
@@ -247,16 +157,15 @@ public partial class CharacterMovement : Node
     }
 
     /// <summary>
-    /// Déplace progressivement le personnage vers la position cible.
+    /// MARCHE : On déplace le personnage petit à petit.
     /// </summary>
-    /// <param name="delta">Temps écoulé depuis la dernière image.</param>
     public void Walk(double delta)
     {
         if (IsWalking)
         {
+            // MoveToward : Déplace A vers B de façon fluide.
             Character.Position = Character.Position.MoveToward(TargetPosition, (float)delta * Globals.GRID_SIZE * 4);
 
-            // Arrêter si proche de la cible.
             if (Character.Position.DistanceTo(TargetPosition) < 1f)
             {
                 StopMoving();
@@ -265,54 +174,39 @@ public partial class CharacterMovement : Node
     }
 
     /// <summary>
-    /// Anime le saut du personnage en suivant une trajectoire parabolique.
+    /// SAUT : On calcule une courbe pour l'effet de bond.
     /// </summary>
-    /// <param name="delta">Temps écoulé depuis la dernière image.</param>
     public void Jump(double delta)
     {
         if (IsJumping)
         {
             Progress += LerpSpeed * (float)delta;
-
+            // Lerp : Interpolation linéaire (on glisse de Start vers Target).
             Vector2 position = StartPosition.Lerp(TargetPosition, Progress);
 
-            // Calculer l'offset parabolique pour l'effet de saut.
+            // MATHS : On ajoute un décalage sur l'axe Y (le haut) pour faire une parabole.
             float parabolicOffset = JumpHeight * (1 - 4 * (Progress - 0.5f) * (Progress - 0.5f));
-
             position.Y -= parabolicOffset;
 
             Character.Position = position;
 
-            // Arrêter le saut à la fin.
-            if (Progress >= 1f)
-            {
-                StopMoving();
-            }
+            if (Progress >= 1f) StopMoving();
         }
     }
 
-    /// <summary>
-    /// Arrête le déplacement et relâche la case réservée.
-    /// </summary>
     public void StopMoving()
     {
-        SceneManager.GetCurrentLevel().ReleaseTile(TargetPosition);
+        SceneManager.GetCurrentLevel().ReleaseTile(TargetPosition); // On libère la case sur la grille
         IsWalking = false;
         IsJumping = false;
         ECharacterMovement = ECharacterMovement.WALKING;
-        SnapPositionToGrid();
+        SnapPositionToGrid(); // On se recale parfaitement sur les pixels
     }
 
-    /// <summary>
-    /// Déclenche l'animation de rotation du personnage.
-    /// </summary>
-    public void Turn()
-    {
-        EmitSignal(SignalName.Animation, "turn");
-    }
+    public void Turn() => EmitSignal(SignalName.Animation, "turn");
 
     /// <summary>
-    /// Aligne la position du personnage sur la grille du jeu.
+    /// RECALAGE : Pour être sûr de ne pas finir entre deux cases à cause des arrondis.
     /// </summary>
     public void SnapPositionToGrid()
     {
