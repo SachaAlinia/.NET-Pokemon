@@ -24,7 +24,7 @@ public partial class CharacterMovement : Node
     [ExportCategory("Jumping")]
     public Vector2 StartPosition; // Où on était avant de sauter
     public bool IsJumping = false; // Est-ce qu'on est en l'air ?
-    public float JumpHeight = 10f; // Hauteur du petit bond
+    public float JumpHeight = 10f; // Hauteur du petit bond 
     public float LerpSpeed = 2f; // Vitesse de la transition
     public float Progress = 0f; // 0 = début du saut, 1 = fin du saut
 

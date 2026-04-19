@@ -54,50 +54,60 @@ public partial class SceneManager : Node
 	/// </summary>
 	public static async void StartBattle(PokemonResource wildPokemon)
 	{
-		// SI on est déjà en train de changer de scène, on ARRÊTE tout (return).
 		if (IsChanging) return;
-		IsChanging = true; // On verrouille.
+		IsChanging = true;
 
 		Logger.Info($"Starting battle against {wildPokemon.Name}...");
 
 		// On va chercher le joueur pour le "figer"
 		var player = GameManager.GetPlayer();
-		if (player != null)
+		if (player == null)
 		{
-			// player.SetProcess(false) coupe les mouvements du joueur (il ne peut plus bouger).
-			player.SetProcess(false);
-			// .Hide() le rend invisible pour ne pas le voir derrière le combat.
-			player.Hide();
+			Logger.Error("Player not found! Cannot start battle.");
+			IsChanging = false;
+			return;
 		}
 
-		// 'await' = Le code s'arrête ici et attend que le fondu au noir soit fini.
+		player.SetProcess(false);
+		player.Hide();
+
+		var playerCamera = player.GetNodeOrNull<Camera2D>("Camera2D");
+		if (playerCamera != null)
+		{
+			playerCamera.Set("current", false);
+		}
+
 		await Instance.FadeOut();
 
-		// On charge le fichier du combat (.tscn) depuis le disque dur.
 		var battleScenePrefab = GD.Load<PackedScene>("res://scenes/core/battle_scene.tscn");
-		// On crée une "copie" réelle (Instantiate) de ce fichier.
 		var battleInstance = battleScenePrefab.Instantiate<BattleScene>();
 
 		// On donne au combat les infos du monstre sauvage et de notre Dracaufeu.
 		battleInstance.EnemyPokemon = wildPokemon;
 		battleInstance.PlayerPokemon = GD.Load<PokemonResource>("res://resources/pokemon/charizard.tres");
 
-		// On cache le décor du monde ouvert.
 		if (Instance.CurrentLevel != null)
 		{
 			Instance.CurrentLevel.Hide();
 		}
 
-		// On "colle" l'écran de combat sur l'écran du joueur.
+		// Ajoute la scène de combat dans le SubViewport du jeu
 		GameManager.GetGameViewPort().AddChild(battleInstance);
 
-		// On lance la musique de combat (on va la chercher dans le dossier audio).
+		// Crée et active une caméra de combat pour avoir le bon zoom
+		var battleCamera = new Camera2D
+		{
+			Zoom = Vector2.One,
+			Position = new Vector2(576, 324), // Centre de la résolution 1152x648
+		};
+		battleInstance.AddChild(battleCamera);
+		battleCamera.MakeCurrent();
+
 		var musicPlayer = Instance.GetNode<MusicPlayer>("/root/MusicPlayer");
 		musicPlayer.PlayMusic("res://assets/audio/music/battle_wild.mp3", -20.0f);
 
-		// On retire le voile noir.
 		await Instance.FadeIn();
-		IsChanging = false; // On déverrouille, le changement est fini.
+		IsChanging = false;
 	}
 
 	/// <summary>
