@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://d3d1dmn2rouuw"]
 
 [ext_resource type="Script" uid="uid://cl2rkpkkjc8ok" path="res://scripts/core/BattleScene.cs" id="1_aa1b3"]
-[ext_resource type="Resource" uid="uid://g3gceajf8tx0" path="res://resources/pokemon/charizard.tres" id="2_8viqo"]
-[ext_resource type="Resource" uid="uid://cispufitahmjp" path="res://resources/pokemon/onix.tres" id="3_dpn6b"]
+[ext_resource type="Resource" uid="uid://ctpqeh87ryk81" path="res://resources/pokemon/pikachu.tres" id="2_0nv8r"]
+[ext_resource type="Resource" uid="uid://ccavg8id3skv0" path="res://resources/pokemon/arbok.tres" id="3_h6n20"]
 [ext_resource type="Texture2D" uid="uid://j8whuhorkrwm" path="res://assets/battles/background.png" id="4_dpn6b"]
 [ext_resource type="Script" uid="uid://dcrnc4ivh173w" path="res://scripts/gameplay/moves/MoveResource.cs" id="4_tquth"]
 [ext_resource type="Resource" uid="uid://b1i10tt0gyisp" path="res://resources/moves/fire-punch.tres" id="5_7sug2"]
@@ -15,6 +15,9 @@
 [ext_resource type="Resource" uid="uid://draw3v0m1ylfc" path="res://resources/moves/slam.tres" id="10_5s5sl"]
 [ext_resource type="Resource" uid="uid://c7n8eob7a4i73" path="res://resources/moves/barrier.tres" id="11_ia84r"]
 [ext_resource type="Resource" uid="uid://ceag5sw63xgj1" path="res://resources/moves/earthquake.tres" id="12_rfb0t"]
+[ext_resource type="Script" uid="uid://d4nb8wxcrxaad" path="res://scripts/gameplay/BattleUI.cs" id="14_7sug2"]
+[ext_resource type="Texture2D" uid="uid://bp27kp8mmtkd6" path="res://assets/pokemon/arbok_front.png" id="14_iebti"]
+[ext_resource type="Texture2D" uid="uid://c44hr5p161606" path="res://assets/pokemon/pikachu_back.png" id="15_5s5sl"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dpn6b"]
 bg_color = Color(0, 0, 0, 1)
@@ -30,30 +33,17 @@ corner_radius_top_right = 30
 corner_radius_bottom_right = 30
 corner_radius_bottom_left = 30
 
-[node name="BattleScene" type="Node2D" unique_id=21051142 node_paths=PackedStringArray("_playerSprite", "_enemySprite", "_playerName", "_enemyName", "_playerLevel", "_enemyLevel", "_playerHPBar", "_enemyHPBar", "_playerHPText", "_enemyHPText", "_dialogueText", "_actionMenu", "_moveMenu", "_itemsMenu", "_movesGrid", "_itemsGrid", "_battleEndScreen", "_battleEndText")]
+[node name="BattleScene" type="Node2D" unique_id=21051142 node_paths=PackedStringArray("_battleUI", "_playerSprite", "_enemySprite")]
 script = ExtResource("1_aa1b3")
-PlayerPokemon = ExtResource("2_8viqo")
-EnemyPokemon = ExtResource("3_dpn6b")
+PlayerPokemon = ExtResource("2_0nv8r")
+EnemyPokemon = ExtResource("3_h6n20")
+PlayerLevel = 24
+EnemyLevel = 17
 PlayerMoves = Array[ExtResource("4_tquth")]([ExtResource("5_7sug2"), ExtResource("6_rl8jl"), ExtResource("7_0nv8r"), ExtResource("8_h6n20")])
 EnemyMoves = Array[ExtResource("4_tquth")]([ExtResource("9_iebti"), ExtResource("10_5s5sl"), ExtResource("11_ia84r"), ExtResource("12_rfb0t")])
+_battleUI = NodePath("UI")
 _playerSprite = NodePath("BattlePositions/PlayerSpawn/PlayerSprite")
 _enemySprite = NodePath("BattlePositions/EnemySpawn/EnemySprite")
-_playerName = NodePath("UI/PlayerHUD/Name")
-_enemyName = NodePath("UI/EnemyHUD/Name")
-_playerLevel = NodePath("UI/PlayerHUD/Level")
-_enemyLevel = NodePath("UI/EnemyHUD/Level")
-_playerHPBar = NodePath("UI/PlayerHUD/HP")
-_enemyHPBar = NodePath("UI/EnemyHUD/HP")
-_playerHPText = NodePath("UI/PlayerHUD/HPText")
-_enemyHPText = NodePath("UI/EnemyHUD/HPText")
-_dialogueText = NodePath("UI/DialogueLabel")
-_actionMenu = NodePath("UI/ActionMenu")
-_moveMenu = NodePath("UI/MoveMenu")
-_itemsMenu = NodePath("UI/ItemsMenu")
-_movesGrid = NodePath("UI/MoveMenu/MovesGrid")
-_itemsGrid = NodePath("UI/ItemsMenu/ItemsGrid")
-_battleEndScreen = NodePath("UI/BattleEndScreen")
-_battleEndText = NodePath("UI/BattleEndScreen/Label")
 
 [node name="Background" type="TextureRect" parent="." unique_id=1232248502]
 offset_right = 1376.0
@@ -69,14 +59,41 @@ position = Vector2(387.00006, -53.000008)
 scale = Vector2(2.5, 2.5)
 
 [node name="EnemySprite" type="Sprite2D" parent="BattlePositions/EnemySpawn" unique_id=2103299829]
+position = Vector2(16.799974, 7.6)
+texture = ExtResource("14_iebti")
 
 [node name="PlayerSpawn" type="Marker2D" parent="BattlePositions" unique_id=1278655778]
 position = Vector2(-137.00002, 108.00001)
 scale = Vector2(2.5, 2.5)
 
 [node name="PlayerSprite" type="Sprite2D" parent="BattlePositions/PlayerSpawn" unique_id=517642859]
+position = Vector2(5.9999995, 11.199999)
+texture = ExtResource("15_5s5sl")
 
-[node name="UI" type="CanvasLayer" parent="." unique_id=1195250324]
+[node name="UI" type="CanvasLayer" parent="." unique_id=1195250324 node_paths=PackedStringArray("_playerName", "_enemyName", "_playerLevel", "_enemyLevel", "_playerHPBar", "_enemyHPBar", "_playerHPText", "_enemyHPText", "_dialogueText", "_boutonAttaque", "_boutonObjet", "_boutonPokemon", "_boutonFuite", "_boutonRetourAttaque", "_boutonRetourObjet", "_boutonContinuer", "_actionMenu", "_moveMenu", "_itemsMenu", "_battleEndScreen", "_movesGrid", "_battleEndText")]
+script = ExtResource("14_7sug2")
+_playerName = NodePath("PlayerHUD/Name")
+_enemyName = NodePath("EnemyHUD/Name")
+_playerLevel = NodePath("PlayerHUD/Level")
+_enemyLevel = NodePath("EnemyHUD/Level")
+_playerHPBar = NodePath("PlayerHUD/HP")
+_enemyHPBar = NodePath("EnemyHUD/HP")
+_playerHPText = NodePath("PlayerHUD/HPText")
+_enemyHPText = NodePath("EnemyHUD/HPText")
+_dialogueText = NodePath("DialogueLabel")
+_boutonAttaque = NodePath("ActionMenu/Attaque")
+_boutonObjet = NodePath("ActionMenu/Objet")
+_boutonPokemon = NodePath("")
+_boutonFuite = NodePath("ActionMenu/Fuite")
+_boutonRetourAttaque = NodePath("MoveMenu/Retour")
+_boutonRetourObjet = NodePath("ItemsMenu/Retour")
+_boutonContinuer = NodePath("BattleEndScreen/ContinueButton")
+_actionMenu = NodePath("ActionMenu")
+_moveMenu = NodePath("MoveMenu")
+_itemsMenu = NodePath("ItemsMenu")
+_battleEndScreen = NodePath("BattleEndScreen")
+_movesGrid = NodePath("MoveMenu/MovesGrid")
+_battleEndText = NodePath("BattleEndScreen/Label")
 
 [node name="EnemyHUD" type="Panel" parent="UI" unique_id=1454778410]
 offset_left = -73.0
@@ -179,10 +196,13 @@ anchor_left = 0.58400005
 anchor_top = -0.24100001
 anchor_right = 0.58400005
 anchor_bottom = -0.24100001
-offset_left = 250.23193
-offset_top = -19.831985
-offset_right = 290.23193
-offset_bottom = 20.168015
+offset_left = -670.76807
+offset_top = 158.16801
+offset_right = -283.76807
+offset_bottom = 338.16803
+tab_size = 8
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ActionMenu" type="GridContainer" parent="UI" unique_id=107617764]
 anchors_preset = 3
@@ -203,13 +223,9 @@ columns = 2
 layout_mode = 2
 text = "        Attaquer      "
 
-[node name="Pokemon" type="Button" parent="UI/ActionMenu" unique_id=862954155]
-layout_mode = 2
-text = "     Pokémons      "
-
 [node name="Objet" type="Button" parent="UI/ActionMenu" unique_id=562964155]
 layout_mode = 2
-text = "Objets"
+text = "           Sac           "
 
 [node name="Fuite" type="Button" parent="UI/ActionMenu" unique_id=2053673498]
 layout_mode = 2
@@ -224,11 +240,12 @@ offset_right = 970.0
 offset_bottom = 512.0
 
 [node name="MovesGrid" type="GridContainer" parent="UI/MoveMenu" unique_id=1168509452]
+custom_minimum_size = Vector2(200, 100)
 layout_mode = 0
-offset_left = 924.0
-offset_top = 489.0
-offset_right = 964.0
-offset_bottom = 529.0
+offset_left = -254.0
+offset_top = -34.0
+offset_right = -54.0
+offset_bottom = 66.0
 columns = 2
 
 [node name="Retour" type="Button" parent="UI/MoveMenu" unique_id=1168509453]
@@ -249,10 +266,10 @@ offset_bottom = 480.0
 
 [node name="ItemsGrid" type="GridContainer" parent="UI/ItemsMenu" unique_id=1168509454]
 layout_mode = 0
-offset_left = 924.0
-offset_top = 489.0
-offset_right = 964.0
-offset_bottom = 529.0
+offset_left = -221.0
+offset_top = 28.0
+offset_right = -99.0
+offset_bottom = 90.0
 columns = 2
 
 [node name="Retour" type="Button" parent="UI/ItemsMenu" unique_id=1168509455]

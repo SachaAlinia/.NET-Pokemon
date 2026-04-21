@@ -3,6 +3,7 @@ using Game.Gameplay;
 using Godot;
 using Godot.Collections;
 using System;
+using System.Collections.Generic; // Important pour List<>
 using System.Threading.Tasks;
 
 public partial class BattleScene : Node2D
@@ -15,306 +16,85 @@ public partial class BattleScene : Node2D
 	[Export] public Array<MoveResource> PlayerMoves = new();
 	[Export] public Array<MoveResource> EnemyMoves = new();
 
+	private Vector2 _playerStartPos;
+	private Vector2 _enemyStartPos;
+
+	[ExportCategory("External Managers")]
+	[Export] private BattleUI _battleUI;
+
 	private BattlePokemon _playerBattle, _enemyBattle;
 	private bool _isBattleOver = false;
 	private bool _battleWon = false;
 	private PlayerInventory _playerInventory = new();
 
-	[ExportCategory("UI Nodes")]
+	[ExportCategory("Visuals")]
 	[Export] private Sprite2D _playerSprite, _enemySprite;
-	[Export] private Label _playerName, _enemyName;
-	[Export] private Label _playerLevel, _enemyLevel;
-	[Export] private TextureProgressBar _playerHPBar, _enemyHPBar;
-	[Export] private Label _playerHPText, _enemyHPText;
-	[Export] private RichTextLabel _dialogueText;
-	[Export] private Control _actionMenu, _moveMenu, _itemsMenu;
-	[Export] private GridContainer _movesGrid, _itemsGrid;
-	[Export] private Control _battleEndScreen;
-	[Export] private Label _battleEndText;
 
 	public override void _Ready()
 	{
-		// Récupération des nœuds avec gestion des cas où ils n'existent pas
-		_enemySprite ??= GetNodeOrNull<Sprite2D>("BattlePositions/EnemySpawn/EnemySprite");
-		_playerSprite ??= GetNodeOrNull<Sprite2D>("BattlePositions/PlayerSpawn/PlayerSprite");
-		_enemyName ??= GetNodeOrNull<Label>("UI/EnemyHUD/Name");
-		_enemyLevel ??= GetNodeOrNull<Label>("UI/EnemyHUD/Level");
-		_enemyHPBar ??= GetNodeOrNull<TextureProgressBar>("UI/EnemyHUD/HP");
-		_enemyHPText ??= GetNodeOrNull<Label>("UI/EnemyHUD/HPText");
-		_playerName ??= GetNodeOrNull<Label>("UI/PlayerHUD/Name");
-		_playerLevel ??= GetNodeOrNull<Label>("UI/PlayerHUD/Level");
-		_playerHPBar ??= GetNodeOrNull<TextureProgressBar>("UI/PlayerHUD/HP");
-		_playerHPText ??= GetNodeOrNull<Label>("UI/PlayerHUD/HPText");
-		_dialogueText ??= GetNodeOrNull<RichTextLabel>("UI/DialogueLabel");
-		_actionMenu ??= GetNodeOrNull<Control>("UI/ActionMenu");
-		_moveMenu ??= GetNodeOrNull<Control>("UI/MoveMenu");
-		_movesGrid ??= GetNodeOrNull<GridContainer>("UI/MoveMenu/MovesGrid");
-		_itemsMenu ??= GetNodeOrNull<Control>("UI/ItemsMenu");
-		_itemsGrid ??= GetNodeOrNull<GridContainer>("UI/ItemsMenu/ItemsGrid");
-		_battleEndScreen ??= GetNodeOrNull<Control>("UI/BattleEndScreen");
-		_battleEndText ??= GetNodeOrNull<Label>("UI/BattleEndScreen/Label");
+		if (_battleUI == null)
+		{
+			GD.PrintErr("ERREUR: BattleUI n'est pas assigné dans l'inspecteur !");
+			return;
+		}
 
-		// Connexion des boutons du menu principal
-		var attackBtn = GetNodeOrNull<Button>("UI/ActionMenu/Attaque");
-		if (attackBtn != null) attackBtn.Pressed += () => ShowMoveMenu(true);
-
-		var itemBtn = GetNodeOrNull<Button>("UI/ActionMenu/Objet");
-		if (itemBtn != null) itemBtn.Pressed += () => ShowItemsMenu(true);
-
-		var pokemonBtn = GetNodeOrNull<Button>("UI/ActionMenu/Pokemon");
-		if (pokemonBtn != null) pokemonBtn.Pressed += OnPokemonMenuPressed;
-
-		var fleeBtn = GetNodeOrNull<Button>("UI/ActionMenu/Fuite");
-		if (fleeBtn != null) fleeBtn.Pressed += OnFleePressed;
-
-		// Connexion des boutons de retour
-		var returnMoveBtn = GetNodeOrNull<Button>("UI/MoveMenu/Retour");
-		if (returnMoveBtn != null) returnMoveBtn.Pressed += () => ShowMoveMenu(false);
-
-		var returnItemBtn = GetNodeOrNull<Button>("UI/ItemsMenu/Retour");
-		if (returnItemBtn != null) returnItemBtn.Pressed += () => ShowItemsMenu(false);
-
-		var continueBtn = GetNodeOrNull<Button>("UI/BattleEndScreen/ContinueButton");
-		if (continueBtn != null) continueBtn.Pressed += OnBattleEnd;
+		// Abonnement aux événements de l'UI
+		_battleUI.OnMoveClicked += OnMoveSelected;
+		_battleUI.OnActionAttackPressed += () => _battleUI.ToggleMoveMenu(true);
+		_battleUI.OnActionItemPressed += () => _battleUI.ToggleItemsMenu(true);
+		_battleUI.OnActionFleePressed += OnFleePressed;
+		_battleUI.OnActionPokemonPressed += OnPokemonMenuPressed;
+		_battleUI.OnReturnPressed += () => _battleUI.ToggleMoveMenu(false);
+		_battleUI.OnBattleEndContinue += OnBattleEnd;
 
 		SetupBattle();
 	}
 
 	private void SetupBattle()
 	{
-		// Sécurité : Si les données n'ont pas encore été envoyées, on ne fait rien
-		if (PlayerPokemon == null || EnemyPokemon == null)
-		{
-			_dialogueText?.AppendText("Erreur : Pokémon non assignés !\n");
-			return;
-		}
+		if (_playerSprite != null) _playerStartPos = _playerSprite.Position;
+		if (_enemySprite != null) _enemyStartPos = _enemySprite.Position;
 
-		// Création des instances de battle
+		// 1. Initialisation des instances de combat
 		_playerBattle = new BattlePokemon(PlayerPokemon, PlayerLevel, PlayerMoves);
 		_enemyBattle = new BattlePokemon(EnemyPokemon, EnemyLevel, EnemyMoves);
 
-		// Affichage des sprites
+		// 2. Mise à jour visuelle des Sprites
 		if (_playerSprite != null) _playerSprite.Texture = PlayerPokemon.BackSprite;
 		if (_enemySprite != null) _enemySprite.Texture = EnemyPokemon.FrontSprite;
 
-		// Affichage des noms et niveaux
-		if (_playerName != null) _playerName.Text = PlayerPokemon.Name.ToUpper();
-		if (_playerLevel != null) _playerLevel.Text = $"Niv. {PlayerLevel}";
-		if (_enemyName != null) _enemyName.Text = EnemyPokemon.Name.ToUpper();
-		if (_enemyLevel != null) _enemyLevel.Text = $"Niv. {EnemyLevel}";
+		// 3. Envoi des infos à l'UI
+		_battleUI.SetupPokemonInfo(true, PlayerPokemon.Name, PlayerLevel);
+		_battleUI.SetupPokemonInfo(false, EnemyPokemon.Name, EnemyLevel);
 
-		// Setup des barres de PV
 		UpdateHealthBars();
 
-		// Génération des boutons d'attaque
-		if (_movesGrid != null)
-		{
-			foreach (Node child in _movesGrid.GetChildren()) child.QueueFree();
+		// 4. CHARGEMENT DES ATTAQUES (Le point critique)
+		GD.Print($"BattleScene: {PlayerPokemon.Name} possède {_playerBattle.Moves.Count} attaques.");
+		_battleUI.RefreshMoves(_playerBattle.Moves);
 
-			foreach (var moveWithPP in _playerBattle.Moves)
-			{
-				Button moveBtn = new Button { Text = $"{moveWithPP.Move.Name} ({moveWithPP.CurrentPP}/{moveWithPP.MaxPP})" };
-				moveBtn.Pressed += () => OnMoveSelected(moveWithPP);
-				_movesGrid.AddChild(moveBtn);
-			}
-		}
-
-		if (_moveMenu != null) _moveMenu.Hide();
-		if (_battleEndScreen != null) _battleEndScreen.Hide();
-		_dialogueText.Text = $"Un {EnemyPokemon.Name} sauvage apparaît !\n";
+		_battleUI.ShowDialogue($"Un {EnemyPokemon.Name} sauvage apparaît !");
 	}
 
 	private void UpdateHealthBars()
 	{
-		// Player
-		if (_playerHPBar != null)
-		{
-			_playerHPBar.MaxValue = _playerBattle.MaxHP;
-			_playerHPBar.Value = _playerBattle.CurrentHP;
-		}
-		if (_playerHPText != null)
-			_playerHPText.Text = $"{_playerBattle.CurrentHP}/{_playerBattle.MaxHP}";
-
-		// Enemy
-		if (_enemyHPBar != null)
-		{
-			_enemyHPBar.MaxValue = _enemyBattle.MaxHP;
-			_enemyHPBar.Value = _enemyBattle.CurrentHP;
-		}
-		if (_enemyHPText != null)
-			_enemyHPText.Text = $"{_enemyBattle.CurrentHP}/{_enemyBattle.MaxHP}";
+		_battleUI.UpdateHealthBar(true, _playerBattle.CurrentHP, _playerBattle.MaxHP);
+		_battleUI.UpdateHealthBar(false, _enemyBattle.CurrentHP, _enemyBattle.MaxHP);
 	}
 
-	private void ShowMoveMenu(bool show)
-	{
-		if (_actionMenu != null && _moveMenu != null)
-		{
-			if (show)
-			{
-				_actionMenu.Hide();
-				_moveMenu.Show();
-				RefreshMoveButtons();
-			}
-			else
-			{
-				_actionMenu.Show();
-				_moveMenu.Hide();
-			}
-		}
-	}
-
-	private void ShowItemsMenu(bool show)
-	{
-		if (_actionMenu != null && _itemsMenu != null)
-		{
-			if (show)
-			{
-				_actionMenu.Hide();
-				_itemsMenu.Show();
-				RefreshItemsButtons();
-			}
-			else
-			{
-				_actionMenu.Show();
-				_itemsMenu.Hide();
-			}
-		}
-	}
-
-	private void RefreshItemsButtons()
-	{
-		if (_itemsGrid == null) return;
-
-		foreach (Node child in _itemsGrid.GetChildren()) child.QueueFree();
-
-		var items = _playerInventory.GetAllItems();
-		if (items.Count == 0)
-		{
-			Label noItemsLabel = new Label { Text = "Pas d'items disponibles" };
-			_itemsGrid.AddChild(noItemsLabel);
-			return;
-		}
-
-		foreach (var item in items.Values)
-		{
-			Button itemBtn = new Button
-			{
-				Text = $"{item.Name} (x{item.Quantity})\n{item.Description}"
-			};
-			itemBtn.Pressed += () => OnItemSelected(item.Type);
-			_itemsGrid.AddChild(itemBtn);
-		}
-	}
-
-	private async void OnItemSelected(PlayerInventory.ItemType itemType)
+	private async void OnMoveSelected(int moveIndex)
 	{
 		if (_isBattleOver) return;
 
-		// Utilise l'item
-		bool success = UseItemInBattle(itemType);
+		var moveWithPP = _playerBattle.Moves[moveIndex];
 
-		if (success)
+		if (!moveWithPP.CanUse)
 		{
-			_playerInventory.UseItem(itemType);
-			_dialogueText.Text += $"\nUtilisé {GetItemName(itemType)} !";
-			await Task.Delay(800);
-
-			// Le joueur a utilisé un item, l'ennemi joue
-			if (!_isBattleOver) await EnemyAiTurn();
-			UpdateHealthBars();
-			RefreshItemsButtons();
-
-			if (!_isBattleOver)
-			{
-				ShowItemsMenu(false);
-				_actionMenu?.Show();
-			}
-		}
-		else
-		{
-			_dialogueText.Text += $"\nCet item ne peut pas être utilisé ici !";
-			await Task.Delay(800);
-		}
-	}
-
-	private bool UseItemInBattle(PlayerInventory.ItemType itemType)
-	{
-		// Récupère les PV selon le type d'item
-		int hpRestore = itemType switch
-		{
-			PlayerInventory.ItemType.Potion => 20,
-			PlayerInventory.ItemType.SuperPotion => 50,
-			PlayerInventory.ItemType.HyperPotion => 100,
-			PlayerInventory.ItemType.FullHeal => _playerBattle.MaxHP,
-			_ => 0
-		};
-
-		if (hpRestore > 0)
-		{
-			_playerBattle.Heal(hpRestore);
-			return true;
-		}
-
-		return false;
-	}
-
-	private string GetItemName(PlayerInventory.ItemType type)
-	{
-		return type switch
-		{
-			PlayerInventory.ItemType.Potion => "Potion",
-			PlayerInventory.ItemType.SuperPotion => "Super Potion",
-			PlayerInventory.ItemType.HyperPotion => "Hyper Potion",
-			PlayerInventory.ItemType.FullHeal => "Full Heal",
-			_ => "Item"
-		};
-	}
-
-	private void OnPokemonMenuPressed()
-	{
-		// Cette fonctionnalité sera implémentée plus tard (switch Pokemon)
-		_dialogueText.Text += "\nFonctionnalité de switch Pokémon à venir !";
-	}
-
-	private async void OnFleePressed()
-	{
-		if (_isBattleOver) return;
-
-		_dialogueText.Text += "\nTentative de fuite...";
-		await Task.Delay(600);
-
-		// 50% de chance de réussir à fuir
-		if (GD.Randf() > 0.5f)
-		{
-			_dialogueText.Text += "\nVous avez réussi à fuir !";
-			await Task.Delay(800);
-			_isBattleOver = true;
-			_battleWon = false;
-			OnBattleEnd();
-		}
-		else
-		{
-			_dialogueText.Text += "\nEchec de la fuite !";
-			await Task.Delay(800);
-
-			if (!_isBattleOver) await EnemyAiTurn();
-			UpdateHealthBars();
-			RefreshMoveButtons();
-
-			if (!_isBattleOver) _actionMenu?.Show();
-		}
-	}
-
-	private async void OnMoveSelected(MoveWithPP moveWithPP)
-	{
-		if (_isBattleOver || !moveWithPP.CanUse)
-		{
-			_dialogueText.Text += "\nCette attaque n'a plus de PP !";
-			await Task.Delay(800);
+			_battleUI.ShowDialogue("Cette attaque n'a plus de PP !", true);
 			return;
 		}
 
-		if (_moveMenu != null) _moveMenu.Hide();
+		_battleUI.ToggleMoveMenu(false);
 		moveWithPP.UsePP();
 
 		bool playerFirst = _playerBattle.Speed >= _enemyBattle.Speed;
@@ -330,44 +110,25 @@ public partial class BattleScene : Node2D
 			if (!_isBattleOver) await ExecuteTurn(_playerBattle, _enemyBattle, moveWithPP.Move, _enemySprite, true);
 		}
 
-		UpdateHealthBars();
-		RefreshMoveButtons();
-
-		if (!_isBattleOver && _actionMenu != null) _actionMenu.Show();
-	}
-
-	private void RefreshMoveButtons()
-	{
-		if (_movesGrid == null) return;
-
-		foreach (Node child in _movesGrid.GetChildren()) child.QueueFree();
-
-		foreach (var moveWithPP in _playerBattle.Moves)
+		if (!_isBattleOver)
 		{
-			Button moveBtn = new Button { Text = $"{moveWithPP.Move.Name} ({moveWithPP.CurrentPP}/{moveWithPP.MaxPP})" };
-			moveBtn.Pressed += () => OnMoveSelected(moveWithPP);
-			_movesGrid.AddChild(moveBtn);
+			UpdateHealthBars();
+			_battleUI.RefreshMoves(_playerBattle.Moves);
+			_battleUI.ShowActionMenu(true);
 		}
 	}
 
 	private async Task EnemyAiTurn()
 	{
-		// IA Simple : choisit une attaque aléatoire parmi celles disponibles
-		var availableMoves = new System.Collections.Generic.List<MoveWithPP>();
-		foreach (var move in _enemyBattle.Moves)
-		{
-			if (move.CanUse)
-				availableMoves.Add(move);
-		}
+		var availableMoves = _enemyBattle.Moves.FindAll(m => m.CanUse);
 
 		if (availableMoves.Count == 0)
 		{
-			_dialogueText.Text += $"\n{_enemyBattle.Resource.Name} n'a plus d'attaques !";
+			_battleUI.ShowDialogue($"{_enemyBattle.Resource.Name} n'a plus d'attaques !", true);
 			return;
 		}
 
-		var randomIndex = (int)(GD.Randi() % availableMoves.Count);
-		var selectedMove = availableMoves[randomIndex];
+		var selectedMove = availableMoves[(int)(GD.Randi() % availableMoves.Count)];
 		selectedMove.UsePP();
 
 		await ExecuteTurn(_enemyBattle, _playerBattle, selectedMove.Move, _playerSprite, false);
@@ -375,79 +136,99 @@ public partial class BattleScene : Node2D
 
 	private async Task ExecuteTurn(BattlePokemon attacker, BattlePokemon target, MoveResource move, Sprite2D targetSprite, bool isAttackerPlayer)
 	{
-		// Animation de l'attaquant qui s'approche
-		await AnimateAttacker(isAttackerPlayer);
+		// Animation d'attaque
+		await AnimateAttacker(isAttackerPlayer, false);
 
-		// Message d'attaque
-		_dialogueText.Text += $"\n{attacker.Resource.Name} utilise {move.Name.ToUpper()} !";
+		_battleUI.ShowDialogue($"{attacker.Resource.Name} utilise {move.Name.ToUpper()} !", true);
 		await Task.Delay(600);
 
-		// Calcul des dégâts
+		// Calcul et application des dégâts
 		var damageResult = DamageCalculator.CalculateDamage(attacker, target, move);
 
 		if (damageResult.IsMiss)
 		{
-			_dialogueText.Text += $"\nL'attaque a échoué !";
-		}
-		else if (damageResult.Damage == 0 && move.Power > 0)
-		{
-			_dialogueText.Text += $"\nCe n'était pas très efficace...";
+			_battleUI.ShowDialogue("L'attaque a échoué !", true);
 		}
 		else
 		{
-			// Application des dégâts
 			target.TakeDamage(damageResult.Damage);
 
-			// Texte flottant de dégâts
+			// Feedback visuel (Floating text + Shake)
 			if (damageResult.Damage > 0)
-			{
 				FloatingText.Create(targetSprite.GetParent(), targetSprite.GlobalPosition, damageResult.Damage.ToString(), Colors.Red);
-			}
 
-			// Message d'efficacité
-			if (damageResult.Damage > 0)
-			{
-				string effectMsg = DamageCalculator.GetEffectivenessMessage(damageResult.Effectiveness);
-				if (!string.IsNullOrEmpty(effectMsg))
-					_dialogueText.Text += $"\n{effectMsg}";
+			string effectMsg = DamageCalculator.GetEffectivenessMessage(damageResult.Effectiveness);
+			if (!string.IsNullOrEmpty(effectMsg)) _battleUI.ShowDialogue(effectMsg, true);
+			if (damageResult.IsCritical) _battleUI.ShowDialogue("Coup critique !", true);
 
-				if (damageResult.IsCritical)
-					_dialogueText.Text += "\nCoup critique !";
-			}
-
-			// Animation de choc
 			ApplyShake(targetSprite);
 			await Task.Delay(500);
 		}
 
-		// Animation de l'attaquant qui se retire
+		// Retour à la position initiale
 		await AnimateAttacker(isAttackerPlayer, true);
-
 		UpdateHealthBars();
 
-		// Vérification de la mort
-		if (CheckDeath(isAttackerPlayer ? target : attacker))
+		// --- VÉRIFICATION DE LA MORT (CORRIGÉE) ---
+		if (target.IsFainted)
 		{
 			_isBattleOver = true;
+			// Si la cible est morte et que l'attaquant était le joueur -> VICTOIRE
 			_battleWon = isAttackerPlayer;
+
+			CheckDeath(target);
+			return; // On arrête le tour ici
+		}
+
+		// Au cas où l'attaquant meurt (ex: futur poison ou recul)
+		if (attacker.IsFainted)
+		{
+			_isBattleOver = true;
+			_battleWon = !isAttackerPlayer;
+			CheckDeath(attacker);
+			return;
 		}
 
 		await Task.Delay(800);
 	}
 
-	private async Task AnimateAttacker(bool isPlayer, bool retreat = false)
+	private bool CheckDeath(BattlePokemon pokemon)
+	{
+		if (pokemon.IsFainted)
+		{
+			_battleUI.ShowDialogue($"{pokemon.Resource.Name} est K.O. !", true);
+			_battleUI.ShowBattleEndScreen(_battleWon);
+			return true;
+		}
+		return false;
+	}
+
+	private async Task AnimateAttacker(bool isPlayer, bool retreat)
 	{
 		var sprite = isPlayer ? _playerSprite : _enemySprite;
 		if (sprite == null) return;
 
 		Tween tween = GetTree().CreateTween();
-		Vector2 originalPos = sprite.Position;
-		Vector2 attackPos = originalPos + (isPlayer ? Vector2.Right : Vector2.Left) * 50;
+
+		// On définit la direction de l'impact
+		Vector2 direction = isPlayer ? Vector2.Right : Vector2.Left;
+		Vector2 originalPos = isPlayer ? new Vector2(208, 416) : new Vector2(816, 176);
+		// Note : Idéalement, utilise sprite.Position au tout début du combat pour stocker ces valeurs.
 
 		if (!retreat)
-			tween.TweenProperty(sprite, "position", attackPos, 0.2f);
+		{
+			// PHASE 1 : L'attaque (Avancer rapidement)
+			Vector2 targetPos = sprite.Position + direction * 50;
+			tween.TweenProperty(sprite, "position", targetPos, 0.1f).SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
+		}
 		else
-			tween.TweenProperty(sprite, "position", originalPos, 0.2f);
+		{
+			// PHASE 2 : Le retour (Revenir à la base)
+			// Ici on ne fait pas de calcul relatif, on donne la position FIXE d'origine
+			// Pour être sûr, on peut utiliser une variable privée _playerStartPos définie dans SetupBattle
+			Vector2 basePos = isPlayer ? _playerStartPos : _enemyStartPos;
+			tween.TweenProperty(sprite, "position", basePos, 0.2f).SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.In);
+		}
 
 		await ToSignal(tween, "finished");
 	}
@@ -462,64 +243,95 @@ public partial class BattleScene : Node2D
 		tween.TweenProperty(target, "position", originalPos, 0.05f);
 	}
 
-	private bool CheckDeath(BattlePokemon pokemon)
+	private async void OnFleePressed()
 	{
-		if (pokemon.IsFainted)
+		_battleUI.ShowDialogue("Tentative de fuite...", true);
+		_battleUI.ShowActionMenu(false);
+		await Task.Delay(600);
+
+		// Chance de fuite 
+		if (GD.Randf() > 0.3f)
 		{
-			_dialogueText.Text += $"\n{pokemon.Resource.Name} est K.O. !";
-
-			if (_battleWon)
-				_dialogueText.Text += $"\nVous avez remporté le combat !";
-			else
-				_dialogueText.Text += $"\nVous avez perdu le combat...";
-
-			if (_actionMenu != null) _actionMenu.Hide();
-			if (_moveMenu != null) _moveMenu.Hide();
-			if (_battleEndScreen != null)
-			{
-				_battleEndScreen.Show();
-				if (_battleEndText != null)
-					_battleEndText.Text = _battleWon ? "VICTOIRE !" : "DÉFAITE...";
-			}
-			return true;
+			_battleUI.ShowDialogue("Vous avez réussi à fuir !", true);
+			await Task.Delay(800);
+			OnBattleEnd(); // <--- ICI on quitte la scène
 		}
-		return false;
+		else
+		{
+			_battleUI.ShowDialogue("Echec de la fuite ! L'ennemi attaque !", true);
+			await Task.Delay(800);
+			await EnemyAiTurn();
+			if (!_isBattleOver) _battleUI.ShowActionMenu(true);
+		}
 	}
 
-	private void OnBattleEnd()
+	private void OnPokemonMenuPressed() => _battleUI.ShowDialogue("Switch non implémenté !", true);
+
+	private async void OnBattleEnd()
 	{
-		if (_battleWon)
+		GD.Print("Fin du combat. Transition et remise en route de la musique de la ville...");
+
+		// 1. TRANSITION (On essaie de récupérer l'AnimationPlayer du SceneManager)
+		// On utilise SceneManager.Instance si c'est un Singleton, sinon on le cherche.
+		var sceneManager = GetTree().Root.FindChild("SceneManager", true, false);
+		var animPlayer = sceneManager?.GetNodeOrNull<AnimationPlayer>("AnimationPlayer");
+
+		if (animPlayer != null)
 		{
-			// Gain d'expérience
-			int expGain = _enemyBattle.Resource.BaseExperience;
-			_playerBattle.Experience += expGain;
-			_dialogueText.Text += $"\nVous avez reçu {expGain} points d'expérience !";
+			// On lance le fondu au noir
+			// IMPORTANT : Vérifie dans ton AnimationPlayer si le nom est bien "FadeToBlack"
+			animPlayer.Play("FadeToBlack");
+			await ToSignal(animPlayer, "animation_finished");
 		}
 
-		// Retour au monde
-		var player = GameManager.GetPlayer();
-		if (player != null)
-		{
-			player.SetProcess(true);
-			player.Show();
-
-			// Réactive la caméra du joueur
-			var playerCamera = player.GetNodeOrNull<Camera2D>("Camera2D");
-			if (playerCamera != null)
-			{
-				playerCamera.MakeCurrent();
-			}
-		}
-
-		// Réaffiche le niveau
+		// 2. RÉAFFICHAGE DU MONDE
 		var currentLevel = SceneManager.GetCurrentLevel();
 		if (currentLevel != null)
 		{
 			currentLevel.Show();
+
+			// 3. REMISE EN ROUTE DE LA MUSIQUE (Via ton switch)
+			// On récupère le nom du level actuel pour relancer la bonne musique
+			string levelName = currentLevel.Name; // Ou SceneManager.GetCurrentLevelName()
+			RestartWorldMusic(levelName);
 		}
 
-		// Retire la scène de combat
-		GetParent().RemoveChild(this);
+		// 4. RÉACTIVATION DU JOUEUR
+		var player = GameManager.GetPlayer();
+		if (player != null)
+		{
+			player.Show();
+			player.SetProcess(true);
+			player.SetPhysicsProcess(true);
+			player.GetNodeOrNull<Camera2D>("Camera2D")?.MakeCurrent();
+		}
+
+		// 5. FIN DE TRANSITION (Ouverture)
+		if (animPlayer != null)
+		{
+			animPlayer.Play("FadeFromBlack");
+		}
+
+		// 6. DESTRUCTION DE LA SCÈNE DE COMBAT
 		QueueFree();
+	}
+
+	// Petite fonction utilitaire pour relancer la musique selon ton switch
+	private void RestartWorldMusic(string levelName)
+	{
+		// On récupère ton MusicPlayer global
+		var musicPlayerNode = GetTree().Root.FindChild("MusicPlayer", true, false);
+
+		// On suppose que ton MusicPlayer a une fonction "PlayMusic" comme tu l'as montré
+		// Si musicPlayerNode est ton script MusicPlayer :
+		if (musicPlayerNode is MusicPlayer mp)
+		{
+			// On adapte le nom au format de ton Enum ou de tes cases
+			if (levelName.ToLower().Contains("small_town"))
+			{
+				mp.PlayMusic("res://assets/audio/music/music1.mp3", -22.0f);
+			}
+			// Ajoute les autres cas ici si besoin
+		}
 	}
 }

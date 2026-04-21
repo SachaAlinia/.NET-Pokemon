@@ -64,7 +64,7 @@ image = SubResource("Image_n6sph")
 
 [resource]
 script = ExtResource("1_5sg05")
-Name = "onix"
+Name = "Onyx"
 Id = 95
 Description = "As it grows, the
 stone portions of
