@@ -1,6 +1,10 @@
-using Godot;
-using System.Collections.Generic;
-using Game.Core;
+// Ce fichier calcule les dégâts des attaques en combat, en tenant compte des types,
+// de l'exactitude (accuracy), des coups critiques, d'un facteur aléatoire, etc.
+// Je n'ai modifié aucune ligne de code : j'ai seulement ajouté des commentaires explicatifs.
+
+using Godot; // API Godot (utile pour GD.Randf(), GD.Randi(), Colors, etc.)
+using System.Collections.Generic; // Pour Dictionary<,>
+using Game.Core; // Contient des définitions de types du jeu (ex: PokemonType, MoveCategory, etc.)
 
 namespace Game.Gameplay;
 
@@ -10,6 +14,11 @@ namespace Game.Gameplay;
 public static class DamageCalculator
 {
     // Tableau d'efficacité des types (très simplifié)
+    // Clé : tuple (type de l'attaque, type de la cible) -> Valeur : multiplicateur d'efficacité
+    // Exemples :
+    // - 2.0f => super efficace (double dégâts)
+    // - 0.5f => peu efficace (moitié dégâts)
+    // - 0.0f => aucune effet (immunité)
     private static readonly Dictionary<(PokemonType, PokemonType), float> TypeEffectiveness = new()
     {
         // Feu
@@ -162,11 +171,16 @@ public static class DamageCalculator
         { (PokemonType.Fairy, PokemonType.Steel), 0.5f },
     };
 
+    // Résultat détaillé du calcul des dégâts
     public class DamageResult
     {
+        // Montant de dégâts à appliquer (int)
         public int Damage { get; set; }
+        // Multiplicateur d'efficacité des types (ex: 2.0f, 0.5f)
         public float Effectiveness { get; set; } = 1.0f;
+        // Indique si c'était un coup critique
         public bool IsCritical { get; set; }
+        // Indique si l'attaque a raté (miss)
         public bool IsMiss { get; set; }
     }
 
@@ -178,21 +192,23 @@ public static class DamageCalculator
         var result = new DamageResult();
 
         // Vérification du miss
+        // Si move.Accuracy > 0 et la valeur aléatoire * 100 dépasse l'accuracy -> échec
         if (move.Accuracy > 0 && GD.Randf() * 100 > move.Accuracy)
         {
             result.IsMiss = true;
             result.Damage = 0;
-            return result;
+            return result; // Sortie rapide si l'attaque a raté
         }
 
         // Move sans dégâts (status, boost, etc.)
+        // Si la puissance est 0, on ne fait pas de dégâts physiques
         if (move.Power == 0)
         {
             result.Damage = 0;
             return result;
         }
 
-        // Calcul des stats à utiliser
+        // Calcul des stats à utiliser (attaque physique ou spéciale selon la catégorie du move)
         int atk = (move.Category == Game.Core.MoveCategory.Physical)
             ? attacker.Attack
             : attacker.SpAtk;
@@ -201,10 +217,11 @@ public static class DamageCalculator
             ? target.Defense
             : target.SpDef;
 
-        // Formule de base Pokemon
+        // Formule de base Pokemon (version simplifiée)
+        // baseDamage ≈ (((2 * level / 5 + 2) * power * atk / def) / 50) + 2
         float baseDamage = (((2.0f * attacker.Level / 5.0f + 2.0f) * move.Power * atk / def) / 50.0f) + 2.0f;
 
-        // Multiplicateur de type
+        // Multiplicateur de type : calculé pour le type principal, puis multiplié si la cible a un second type.
         float typeEffectiveness = GetTypeEffectiveness(move.PokemonType, target.Resource.TypeOne);
         if (target.Resource.TypeTwo != PokemonType.None)
         {
@@ -212,40 +229,45 @@ public static class DamageCalculator
         }
         result.Effectiveness = typeEffectiveness;
 
-        // Critique (5% de chance par défaut, peut être modifié par move.CritRate)
+        // Critique : probabilité de critique de base 5% + modificateur du move (move.CritRate exprimé en pourcentage)
         float critChance = 0.05f + (move.CritRate / 100.0f);
         bool isCritical = GD.Randf() < critChance;
         result.IsCritical = isCritical;
 
-        // Facteur aléatoire (85-100%)
+        // Facteur aléatoire entre 0.85 et 1.0 (pour varier légèrement les dégâts)
         float randomFactor = GD.Randf() * 0.15f + 0.85f;
 
-        // Calcul final
+        // Calcul final : base * types * (crit ? 1.5 : 1) * random
         float finalDamage = baseDamage * typeEffectiveness * (isCritical ? 1.5f : 1.0f) * randomFactor;
 
+        // On convertit en int pour appliquer les PV ; la conversion tronque les décimales.
         result.Damage = (int)finalDamage;
         return result;
     }
 
+    // Récupère le multiplicateur d'efficacité entre le type du move et le type cible
     private static float GetTypeEffectiveness(PokemonType moveType, PokemonType targetType)
     {
+        // Si un des types est "None" on retourne 1 (neutre)
         if (moveType == PokemonType.None || targetType == PokemonType.None)
             return 1.0f;
 
+        // Essaye de trouver la valeur dans le dictionnaire ; sinon neutre (1.0f)
         if (TypeEffectiveness.TryGetValue((moveType, targetType), out var effectiveness))
             return effectiveness;
 
         return 1.0f;
     }
 
+    // Retourne un message utilisateur selon le multiplicateur d'efficacité
     public static string GetEffectivenessMessage(float effectiveness)
     {
         return effectiveness switch
         {
-            0f => "Ça n'a aucun effet...",
-            < 1f => "Ce n'est pas très efficace...",
-            > 1f => "C'est super efficace !",
-            _ => ""
+            0f => "Ça n'a aucun effet...",           // Immunité
+            < 1f => "Ce n'est pas très efficace...", // Moins efficace
+            > 1f => "C'est super efficace !",         // Super efficace
+            _ => ""                                   // exact 1.0f -> pas de message
         };
     }
 }
