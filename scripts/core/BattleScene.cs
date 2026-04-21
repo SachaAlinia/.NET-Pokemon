@@ -245,23 +245,34 @@ public partial class BattleScene : Node2D
 
 	private async void OnFleePressed()
 	{
-		_battleUI.ShowDialogue("Tentative de fuite...", true);
+		// 1. Désactiver le menu pour éviter de cliquer deux fois
 		_battleUI.ShowActionMenu(false);
+
+		_battleUI.ShowDialogue("Tentative de fuite...", true);
 		await Task.Delay(600);
 
-		// Chance de fuite 
-		if (GD.Randf() > 0.3f)
+		// Chance de fuite (0.5f = 50%, mets 0.0f pour réussir à 100% pendant tes tests)
+		if (GD.Randf() > 0.0f)
 		{
 			_battleUI.ShowDialogue("Vous avez réussi à fuir !", true);
 			await Task.Delay(800);
-			OnBattleEnd(); // <--- ICI on quitte la scène
+
+			_isBattleOver = true; 
+			OnBattleEnd();
 		}
 		else
 		{
-			_battleUI.ShowDialogue("Echec de la fuite ! L'ennemi attaque !", true);
+			_battleUI.ShowDialogue("Echec de la fuite ! L'ennemi bloque le passage !", true);
 			await Task.Delay(800);
+
+			// Le combat continue, l'ennemi attaque
 			await EnemyAiTurn();
-			if (!_isBattleOver) _battleUI.ShowActionMenu(true);
+
+			// Si le joueur n'est pas mort, on réaffiche le menu
+			if (!_isBattleOver)
+			{
+				_battleUI.ShowActionMenu(true);
+			}
 		}
 	}
 
@@ -269,31 +280,40 @@ public partial class BattleScene : Node2D
 
 	private async void OnBattleEnd()
 	{
-		GD.Print("Fin du combat. Transition et remise en route de la musique de la ville...");
+		if (_isBattleOver == false) return; // Sécurité
 
-		// 1. TRANSITION (On essaie de récupérer l'AnimationPlayer du SceneManager)
-		// On utilise SceneManager.Instance si c'est un Singleton, sinon on le cherche.
-		var sceneManager = GetTree().Root.FindChild("SceneManager", true, false);
-		var animPlayer = sceneManager?.GetNodeOrNull<AnimationPlayer>("AnimationPlayer");
+		GD.Print("Fin du combat : Lancement de la transition via SceneManager...");
 
-		if (animPlayer != null)
+		// 1. TRANSITION SORTIE (Le rectangle noir s'affiche)
+		// On appelle le FadeOut que tu as déjà défini dans SceneManager
+		await SceneManager.Instance.FadeOut();
+
+		// 2. MUSIQUE : On relance la musique du niveau actuel
+		var currentLevel = SceneManager.GetCurrentLevel();
+		var musicPlayer = GetNode<MusicPlayer>("/root/MusicPlayer");
+
+		if (currentLevel != null && musicPlayer != null)
 		{
-			// On lance le fondu au noir
-			// IMPORTANT : Vérifie dans ton AnimationPlayer si le nom est bien "FadeToBlack"
-			animPlayer.Play("FadeToBlack");
-			await ToSignal(animPlayer, "animation_finished");
+			// On utilise ton switch de musique basé sur le nom du niveau
+			switch (currentLevel.LevelName)
+			{
+				case LevelName.small_town:
+					musicPlayer.PlayMusic("res://assets/audio/music/music1.mp3", -22.0f);
+					break;
+				case LevelName.small_town_cave:
+					musicPlayer.PlayMusic("res://assets/audio/music/music2.mp3", -17.0f);
+					break;
+				// Ajoute les autres cases ici si tu en as besoin
+				default:
+					musicPlayer.PlayMusic("res://assets/audio/music/music1.mp3", -22.0f);
+					break;
+			}
 		}
 
-		// 2. RÉAFFICHAGE DU MONDE
-		var currentLevel = SceneManager.GetCurrentLevel();
+		// 3. RÉAFFICHAGE DU MONDE
 		if (currentLevel != null)
 		{
 			currentLevel.Show();
-
-			// 3. REMISE EN ROUTE DE LA MUSIQUE (Via ton switch)
-			// On récupère le nom du level actuel pour relancer la bonne musique
-			string levelName = currentLevel.Name; // Ou SceneManager.GetCurrentLevelName()
-			RestartWorldMusic(levelName);
 		}
 
 		// 4. RÉACTIVATION DU JOUEUR
@@ -303,17 +323,21 @@ public partial class BattleScene : Node2D
 			player.Show();
 			player.SetProcess(true);
 			player.SetPhysicsProcess(true);
-			player.GetNodeOrNull<Camera2D>("Camera2D")?.MakeCurrent();
+
+			// On remet la caméra du joueur en mode "current"
+			var playerCamera = player.GetNodeOrNull<Camera2D>("Camera2D");
+			if (playerCamera != null)
+			{
+				playerCamera.MakeCurrent();
+			}
 		}
 
-		// 5. FIN DE TRANSITION (Ouverture)
-		if (animPlayer != null)
-		{
-			animPlayer.Play("FadeFromBlack");
-		}
-
-		// 6. DESTRUCTION DE LA SCÈNE DE COMBAT
+		// 5. DESTRUCTION DE LA SCÈNE DE COMBAT
+		// On le fait AVANT le FadeIn pour ne plus voir le combat quand le noir se retire
 		QueueFree();
+
+		// 6. TRANSITION ENTRÉE (Le noir s'efface)
+		await SceneManager.Instance.FadeIn();
 	}
 
 	// Petite fonction utilitaire pour relancer la musique selon ton switch
