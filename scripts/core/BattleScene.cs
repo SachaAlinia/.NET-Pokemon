@@ -252,7 +252,7 @@ public partial class BattleScene : Node2D
 		await Task.Delay(600);
 
 		// Chance de fuite (0.5f = 50%, mets 0.0f pour réussir à 100% pendant tes tests)
-		if (GD.Randf() > 0.0f)
+		if (GD.Randf() > 0.5f)
 		{
 			_battleUI.ShowDialogue("Vous avez réussi à fuir !", true);
 			await Task.Delay(800);

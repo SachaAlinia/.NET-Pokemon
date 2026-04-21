@@ -2,12 +2,20 @@
 
 [ext_resource type="Script" uid="uid://bpion4qpiamje" path="res://scripts/gameplay/levels/Level.cs" id="1_2cpqh"]
 [ext_resource type="TileSet" uid="uid://cx5l6e3tq8rem" path="res://resources/tilesets/level.tres" id="1_467iw"]
+[ext_resource type="Resource" uid="uid://d0awwr4h4pja3" path="res://resources/pokemon/kadabra.tres" id="2_m1fle"]
 [ext_resource type="PackedScene" uid="uid://cardhe40oeavn" path="res://scenes/levels/spawn_point.tscn" id="3_14dux"]
+[ext_resource type="Resource" uid="uid://cispufitahmjp" path="res://resources/pokemon/onix.tres" id="3_ogvmu"]
 [ext_resource type="PackedScene" uid="uid://b1vjurr1j5v8q" path="res://scenes/levels/scene_trigger.tscn" id="3_x2ndx"]
+[ext_resource type="Resource" uid="uid://c4flwx7fqfj6x" path="res://resources/pokemon/magneton.tres" id="4_u7qr2"]
 [ext_resource type="PackedScene" uid="uid://dy6u7lnf72to1" path="res://scenes/levels/sign.tscn" id="5_6kjy8"]
+[ext_resource type="Resource" uid="uid://brfcamo1vh2ie" path="res://resources/pokemon/geodude.tres" id="5_quxll"]
 [ext_resource type="PackedScene" uid="uid://djuwo7vtckbv0" path="res://scenes/levels/tall_grass.tscn" id="6_3nfn8"]
+[ext_resource type="Resource" uid="uid://oi1elfoghwty" path="res://resources/pokemon/magmar.tres" id="6_dsrae"]
 [ext_resource type="PackedScene" uid="uid://bx4im14dneh6k" path="res://scenes/characters/npc.tscn" id="7_fv6i1"]
+[ext_resource type="Resource" uid="uid://s4hg1531mmpa" path="res://resources/pokemon/machoke.tres" id="7_mha8d"]
 [ext_resource type="Script" uid="uid://bd7euek3bm7wd" path="res://scripts/gameplay/characters/NpcInputConfig.cs" id="8_00pfa"]
+[ext_resource type="Resource" uid="uid://biegx064dri2p" path="res://resources/pokemon/persian.tres" id="8_7qe3f"]
+[ext_resource type="Resource" uid="uid://bgjil7vryfxa1" path="res://resources/pokemon/kabutops.tres" id="9_bfwek"]
 [ext_resource type="Script" uid="uid://buiyxe2pa1lhv" path="res://scripts/utilities/LevelDebugger.cs" id="9_gr214"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_r2wcl"]
@@ -47,6 +55,7 @@ script = ExtResource("1_2cpqh")
 EncounterRate = 2
 Bottom = 320
 Right = 512
+WildPokemons = Array[Object]([ExtResource("2_m1fle"), ExtResource("3_ogvmu"), ExtResource("4_u7qr2"), ExtResource("5_quxll"), ExtResource("6_dsrae"), ExtResource("7_mha8d"), ExtResource("8_7qe3f"), ExtResource("9_bfwek")])
 
 [node name="Tiles" type="Node2D" parent="." unique_id=1533292675]
 

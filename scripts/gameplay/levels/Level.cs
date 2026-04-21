@@ -42,6 +42,8 @@ public partial class Level : Node2D
 	[Export]
 	public bool DebugLayerOn = false;
 
+	[Export] public Array<PokemonResource> WildPokemons; // Glisse tes .tres (Pikachu, Arbok, etc.) ici
+
 	// Cases réservées pour les déplacements en cours.
 	private readonly HashSet<Vector2> reserverdTiles = [];
 

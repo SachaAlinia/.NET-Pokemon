@@ -38,26 +38,38 @@ public partial class TallGrass : Area2D
 
     public void CalculateEncounterChance()
     {
-        // On récupère le taux de rencontre défini dans le script du Level actuel
-        int rate = SceneManager.GetCurrentLevel().EncounterRate;
+        // 1. On récupère le niveau actuel
+        var currentLevel = SceneManager.GetCurrentLevel();
+        int rate = currentLevel.EncounterRate;
         int chance = Globals.GetRandomNumberGenerator().RandiRange(0, 100);
 
         if (chance <= rate)
         {
             Logger.Info($"Pokemon encountered! -> {chance} <= {rate}");
 
-            // 1. On charge le Pokémon sauvage (Onix pour le test)
-            // Assure-toi que le chemin vers le .tres est correct
-            var wildPokemon = GD.Load<PokemonResource>("res://resources/pokemon/onix.tres");
-
-            if (wildPokemon != null)
+            // 2. RÉCUPÉRATION ALÉATOIRE :
+            // On vérifie si la liste de Pokémon du niveau n'est pas vide
+            if (currentLevel.WildPokemons != null && currentLevel.WildPokemons.Count > 0)
             {
-                // 2. On lance la transition de combat via le SceneManager
-                SceneManager.StartBattle(wildPokemon);
+                // On choisit un index au hasard entre 0 et le nombre de Pokémon dans la liste
+                int randomIndex = Globals.GetRandomNumberGenerator().RandiRange(0, currentLevel.WildPokemons.Count - 1);
+
+                // On récupère le Pokémon correspondant
+                var wildPokemon = currentLevel.WildPokemons[randomIndex];
+
+                if (wildPokemon != null)
+                {
+                    // 3. On lance le combat avec CE Pokémon spécifique
+                    SceneManager.StartBattle(wildPokemon);
+                }
             }
             else
             {
-                Logger.Error("TallGrass: Impossible de charger la ressource du Pokémon sauvage !");
+                Logger.Error("TallGrass: La liste WildPokemons du Level est vide ou nulle !");
+
+                // Secours au cas où la liste est vide pour ne pas bloquer le jeu
+                var backupPokemon = GD.Load<PokemonResource>("res://resources/pokemon/onix.tres");
+                SceneManager.StartBattle(backupPokemon);
             }
         }
     }
