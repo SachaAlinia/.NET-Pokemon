@@ -1,6 +1,7 @@
 using Game.Gameplay;
 using Game.UI;
 using Godot;
+using System.Collections.Generic;
 
 namespace Game.Core;
 
@@ -54,5 +55,16 @@ public partial class GameManager : Node
 	public static Player GetPlayer()
 	{
 		return Instance.Player;
+	}
+
+	// Dans GameManager.cs
+	public static Dictionary<ItemResource, int> Inventory = new();
+
+	public static void AddItem(ItemResource item, int amount = 1)
+	{
+		if (Inventory.ContainsKey(item))
+			Inventory[item] += amount;
+		else
+			Inventory[item] = amount;
 	}
 }

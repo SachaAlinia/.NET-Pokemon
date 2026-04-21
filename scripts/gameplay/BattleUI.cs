@@ -2,6 +2,7 @@ using Game.Gameplay;
 using Godot;
 using System;
 using System.Collections.Generic;
+using Game.Core; // Ensure this matches the namespace where GameManager is defined
 
 public partial class BattleUI : CanvasLayer
 {
@@ -13,6 +14,15 @@ public partial class BattleUI : CanvasLayer
 	public event Action OnActionFleePressed;
 	public event Action OnReturnPressed;
 	public event Action OnBattleEndContinue;
+
+	// 1. L'événement qui prévient quand on clique sur un objet
+	public event Action<ItemResource> OnItemUsed;
+
+	// 2. Le lien vers ton GridContainer d'objets
+	[Export] private GridContainer _itemsGrid;
+
+	// 3. Le lien vers le menu des objets lui-même pour pouvoir le cacher/montrer
+	[Export] private Control _itemsMenu;
 
 	[ExportCategory("HUD")]
 	[Export] private Label _playerName, _enemyName;
@@ -33,7 +43,7 @@ public partial class BattleUI : CanvasLayer
 	[Export] private Button _boutonContinuer;
 
 	[ExportCategory("Menus")]
-	[Export] private Control _actionMenu, _moveMenu, _itemsMenu, _battleEndScreen;
+	[Export] private Control _actionMenu, _moveMenu, _battleEndScreen;
 	[Export] private GridContainer _movesGrid;
 	[Export] private Label _battleEndText;
 
@@ -132,6 +142,29 @@ public partial class BattleUI : CanvasLayer
 			{
 				_moveButtons[i].Hide();
 			}
+		}
+	}
+	public void RefreshItems()
+	{
+		// 1. On vide l'ancien affichage (si tu as un container spécifique pour les items)
+		foreach (Node child in _itemsGrid.GetChildren())
+		{
+			child.QueueFree();
+		}
+
+		// 2. On parcourt le dictionnaire du GameManager
+		foreach (var entry in GameManager.Inventory)
+		{
+			ItemResource item = entry.Key;
+			int count = entry.Value;
+
+			var btn = new Button();
+			btn.Text = $"{item.Name} x{count}";
+
+			// Quand on clique sur l'objet
+			btn.Pressed += () => OnItemUsed?.Invoke(item);
+
+			_itemsGrid.AddChild(btn);
 		}
 	}
 
